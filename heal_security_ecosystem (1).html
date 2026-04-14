@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HEAL Security — Ecosystem Map</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --bg: #ffffff; --bg2: #f5f4f0; --bg3: #eeecea;
+    --text: #1a1a18; --text2: #5f5e5a; --text3: #888780;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18; --bg2: #232320; --bg3: #2c2c29;
+      --text: #e8e6de; --text2: #a8a69e; --text3: #6e6c66;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+    }
+  }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); padding: 16px; }
+  .hdr { background: #1a3a5c; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .hdr-l .ht { font-size: 16px; font-weight: 600; color: #fff; }
+  .hdr-l .hs { font-size: 11px; color: #8bb8d8; margin-top: 2px; }
+  .urgency { background: #C03010; color: #fff; font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  #tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+  .tab { padding: 5px 13px; border-radius: 20px; border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text2); cursor: pointer; font-size: 11px; font-family: var(--font); transition: all .15s; }
+  .tab.on { background: var(--bg); color: var(--text); border-color: var(--text3); font-weight: 600; }
+  .tab:hover { background: var(--bg3); }
+  #layout { display: grid; grid-template-columns: 1fr 295px; gap: 12px; align-items: start; }
+  canvas { display: block; width: 100%; border-radius: 8px; border: 0.5px solid var(--border); cursor: default; }
+  #panel { background: var(--bg); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px; min-height: 420px; }
+  .p-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .p-cat  { font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; margin-bottom: 10px; }
+  .p-hd   { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text3); margin: 10px 0 4px; }
+  .p-item { font-size: 11px; line-height: 1.55; margin-bottom: 3px; padding-left: 10px; position: relative; color: var(--text2); }
+  .p-item:before { content: ""; position: absolute; left: 0; top: 6px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .65; }
+  .c-blue   { color: #0C447C; } .c-blue:before   { background: #0C447C; }
+  .c-green  { color: #0F6E56; } .c-green:before  { background: #0F6E56; }
+  .c-red    { color: #A32D2D; } .c-red:before    { background: #A32D2D; }
+  .c-amber  { color: #854F0B; } .c-amber:before  { background: #854F0B; }
+  .c-purple { color: #3C3489; } .c-purple:before { background: #3C3489; }
+  .c-gray   { color: #444441; } .c-gray:before   { background: #444441; }
+  .def { color: var(--text3); font-size: 12px; line-height: 1.65; padding-top: 6px; }
+  .xbtn { margin-top: 12px; width: 100%; font-size: 11px; padding: 7px; border-radius: 8px; border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); cursor: pointer; font-family: var(--font); }
+  .xbtn:hover { background: var(--bg3); }
+  #leg { margin-top: 10px; background: var(--bg2); border: 0.5px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .leg-t { font-size: 9px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); margin-bottom: 5px; }
+  .leg-r { display: flex; flex-wrap: wrap; gap: 5px 14px; margin-bottom: 8px; }
+  .li { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text2); }
+  .ld { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .le { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+  .ll { height: 3px; width: 22px; border-radius: 1px; flex-shrink: 0; }
+  @media (max-width: 600px) { #layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-l">
+    <div class="ht">HEAL Security — Ecosystem Map</div>
+    <div class="hs">Healthcare cybersecurity · Vulnerability management · HLTH / 121G pipeline · Apr 2026</div>
+  </div>
+  <div class="urgency">17 days remaining</div>
+</div>
+
+<div id="tabs">
+  <button class="tab on" onclick="sv('all',this)">Full ecosystem</button>
+  <button class="tab" onclick="sv('gaps',this)">Current gaps</button>
+  <button class="tab" onclick="sv('roadmap',this)">Tech roadmap</button>
+  <button class="tab" onclick="sv('comp',this)">Competitive</button>
+  <button class="tab" onclick="sv('gtm',this)">GTM / buyers</button>
+  <button class="tab" onclick="sv('risk',this)">Risks / decisions</button>
+</div>
+
+<div id="layout">
+  <div><canvas id="c" height="620"></canvas></div>
+  <div id="panel">
+    <div id="def-msg" class="def">Click any node to explore HEAL's current gaps, technical roadmap priorities, competitive positioning, buyer profiles, and the critical decisions needed in the next 17 days.</div>
+    <div id="detail" style="display:none">
+      <div class="p-name" id="pn"></div>
+      <div class="p-cat"  id="pc"></div>
+      <div id="pbody"></div>
+      <button class="xbtn" id="xbtn">Copy question to explore deeper ↗</button>
+    </div>
+  </div>
+</div>
+
+<div id="leg">
+  <div class="leg-t">Node type</div>
+  <div class="leg-r">
+    <div class="li"><div class="ld" style="background:#1a3a5c"></div>HEAL / core</div>
+    <div class="li"><div class="ld" style="background:#A32D2D"></div>Critical gap</div>
+    <div class="li"><div class="ld" style="background:#0F6E56"></div>Tech roadmap</div>
+    <div class="li"><div class="ld" style="background:#3C3489"></div>ICP / buyer</div>
+    <div class="li"><div class="ld" style="background:#854F0B"></div>Competitor</div>
+    <div class="li"><div class="ld" style="background:#444441"></div>Partner / enabler</div>
+    <div class="li"><div class="ld" style="background:#185FA5"></div>Policy / regulation</div>
+  </div>
+  <div class="leg-t">Connection type</div>
+  <div class="leg-r" style="margin-bottom:0">
+    <div class="le"><div class="ll" style="background:#A32D2D"></div>Blocks / gap</div>
+    <div class="le"><div class="ll" style="background:#0F6E56"></div>Roadmap fix</div>
+    <div class="le"><div class="ll" style="background:#0C447C"></div>GTM / buyer</div>
+    <div class="le"><div class="ll" style="background:repeating-linear-gradient(90deg,#854F0B 0,#854F0B 4px,transparent 4px,transparent 7px)"></div>Competitive threat</div>
+  </div>
+</div>
+
+<script>
+const CATS={core:'#1a3a5c',gap:'#A32D2D',roadmap:'#0F6E56',icp:'#3C3489',comp:'#854F0B',partner:'#444441',policy:'#185FA5'};
+const ECOLS={gap:'#A32D2D',fix:'#0F6E56',gtm:'#0C447C',comp:'#854F0B'};
+const EW={gap:2.2,fix:2.2,gtm:2,comp:1.6};
+
+const NODES=[
+  {id:'heal',      label:'HEAL\nSecurity',        cat:'core',    x:340, y:55,  r:30},
+  {id:'hlth',      label:'HLTH /\n121G Pipeline',  cat:'partner', x:160, y:55,  r:22},
+  {id:'dashboard', label:'Vuln\nDashboard',         cat:'core',    x:520, y:55,  r:22},
+  {id:'no_sales',  label:'Zero\nSales',             cat:'gap',     x:100, y:170, r:22},
+  {id:'no_patch',  label:'No Patch\nStatus',        cat:'gap',     x:230, y:170, r:22},
+  {id:'os_only',   label:'Generic OS\nOnly',        cat:'gap',     x:360, y:170, r:22},
+  {id:'manual',    label:'Manual Asset\nEntry',     cat:'gap',     x:490, y:170, r:22},
+  {id:'bad_ux',    label:'Poor\nUI/UX',             cat:'gap',     x:610, y:170, r:20},
+  {id:'phase1',    label:'Phase 1\nAsset Discovery',cat:'roadmap', x:160, y:295, r:24},
+  {id:'phase2',    label:'Phase 2\nCVE Mapping',    cat:'roadmap', x:340, y:295, r:24},
+  {id:'phase3',    label:'Phase 3\nAI Engine',      cat:'roadmap', x:510, y:295, r:24},
+  {id:'intune',    label:'Intune\nIntegration',     cat:'partner', x:80,  y:400, r:18},
+  {id:'network_scan',label:'Network\nScanning',     cat:'partner', x:200, y:400, r:18},
+  {id:'hiso',      label:'Hospital\nISO / CISO',    cat:'icp',     x:340, y:415, r:24},
+  {id:'mssp',      label:'MSSP\nPartner',            cat:'icp',     x:490, y:415, r:22},
+  {id:'hlth_sys',  label:'Health\nSystem IT',        cat:'icp',     x:620, y:415, r:20},
+  {id:'rapid7',    label:'Rapid7 /\nTenable',        cat:'comp',    x:100, y:530, r:20},
+  {id:'claroty',   label:'Claroty /\nMedigate',      cat:'comp',    x:220, y:530, r:20},
+  {id:'fortified', label:'Fortified\n(Franklin)',    cat:'comp',    x:340, y:530, r:20},
+  {id:'crowdstrike',label:'CrowdStrike\nFalcon',    cat:'comp',    x:460, y:530, r:20},
+  {id:'hipaa',     label:'HIPAA /\nHITRUST',         cat:'policy',  x:580, y:530, r:18},
+  {id:'mythos',    label:'Mythos /\nAI Models',      cat:'partner', x:640, y:295, r:18},
+];
+
+const EDGES=[
+  {a:'heal',b:'no_sales',  type:'gap', label:'root problem'},
+  {a:'heal',b:'no_patch',  type:'gap', label:'missing feature'},
+  {a:'heal',b:'os_only',   type:'gap', label:'missing feature'},
+  {a:'heal',b:'manual',    type:'gap', label:'missing feature'},
+  {a:'heal',b:'bad_ux',    type:'gap', label:'UX debt'},
+  {a:'heal',b:'dashboard', type:'gtm', label:'core product'},
+  {a:'hlth',b:'heal',      type:'gtm', label:'pipeline source'},
+  {a:'phase1',b:'manual',  type:'fix', label:'fixes manual entry'},
+  {a:'phase1',b:'os_only', type:'fix', label:'fixes build numbers'},
+  {a:'phase2',b:'no_patch',type:'fix', label:'fixes patch status'},
+  {a:'phase2',b:'bad_ux',  type:'fix', label:'improves UX'},
+  {a:'phase3',b:'no_sales',type:'fix', label:'differentiator'},
+  {a:'intune',b:'phase1',  type:'fix', label:'data source'},
+  {a:'network_scan',b:'phase1',type:'fix',label:'discovery method'},
+  {a:'heal',b:'hiso',      type:'gtm', label:'primary buyer'},
+  {a:'heal',b:'mssp',      type:'gtm', label:'channel partner'},
+  {a:'heal',b:'hlth_sys',  type:'gtm', label:'end customer'},
+  {a:'fortified',b:'heal', type:'comp',label:'declined demo'},
+  {a:'rapid7',b:'heal',    type:'comp',label:'enterprise threat'},
+  {a:'claroty',b:'heal',   type:'comp',label:'med device focus'},
+  {a:'crowdstrike',b:'heal',type:'comp',label:'platform threat'},
+  {a:'hipaa',b:'hiso',     type:'gtm', label:'compliance driver'},
+  {a:'mythos',b:'phase3',  type:'gtm', label:'AI uncertainty'},
+];
+
+const DATA={
+  heal:{cat:'HEAL Security — core product',secs:[
+    {hd:'What HEAL is',cls:'c-blue',items:['Rebuilding a failed healthcare cybersecurity startup through HLTH/121G pipeline','Single dashboard showing vulnerabilities for healthcare technology products and devices','Mission: give health system IT teams one pane of glass for their attack surface','Currently at zero sales — product gaps are blocking all commercial traction']},
+    {hd:'Critical priorities in 17 days',cls:'c-red',items:['Priority 1: Get to patchable — can\'t sell a vuln dashboard that can\'t show what\'s patched','Priority 2: Automate asset discovery — manual entry is a dealbreaker for any buyer','Priority 3: Build numbers not OS versions — CISOs will reject imprecise version data','These are table-stakes features, not differentiators — must ship before any sales motion']},
+    {hd:'Strategic options on the table',cls:'c-amber',items:['Option A: Sprint Phase 1+2 fixes → re-demo to Fortified and similar MSSPs','Option B: Pivot to MSSP white-label model — let partners front the product','Option C: Position as acquisition target — build enough to make HEAL acquirable','Option D: Partner with Claroty/Medigate for medical device layer — fill gap with integration']},
+  ]},
+  hlth:{cat:'Partner: HLTH / 121G pipeline',secs:[
+    {hd:'Role in HEAL\'s story',cls:'c-blue',items:['Primary pipeline and support structure for the HEAL rebuild','Chad Fuller and Eric (121G technical team) authored the 3-phase roadmap','Pipeline source for potential customers, partners, and acquirers','17-day team capacity constraint is a 121G resource limitation — clarify what happens at day 18']},
+    {hd:'What to extract from this relationship now',cls:'c-amber',items:['Technical roadmap execution: scope Phase 1 and 2 to fit within the 17-day window','Warm introductions to healthcare CISOs and IT buyers in the HLTH network','Potential acquirer introductions — 121G may know strategic buyers in cybersecurity','Clarify: what happens at day 17? Does team capacity renew, pivot, or wind down?']},
+  ]},
+  dashboard:{cat:'Core product: vulnerability dashboard',secs:[
+    {hd:'What it currently does',cls:'c-blue',items:['Single pane of glass for vulnerability exposure across tech products and devices','Shows CVE listings mapped to assets in the health system environment','Generic OS version mapping (Windows 10/11 — not build-specific)','Manual asset entry — no automated discovery or network scanning']},
+    {hd:'What it needs to do to sell',cls:'c-red',items:['Show patched vs unpatched status per CVE per asset — this is gap #1','Auto-discover assets via network scanning + Intune ingestion — manual is dead on arrival','Map CVEs to specific build numbers (e.g. Windows 11 22H2 19045.xxxx) not generic versions','Surface critical data prominently — poor UX was explicitly called out in Fortified demo']},
+    {hd:'Differentiation path (Phase 3)',cls:'c-green',items:['AI prioritization: rank vulnerabilities by exploitability + asset criticality + patch availability','Healthcare-specific AI scoring (HIPAA context, medical device criticality, patient safety) is the defensible moat','Generic AI prioritization will commoditize — healthcare-specific AI will not','Phase 3 is a Series A story, not a 17-day sprint']},
+  ]},
+  no_sales:{cat:'Critical gap: zero sales achieved',secs:[
+    {hd:'Why this is the root problem',cls:'c-red',items:['Without sales, there is no evidence of product-market fit — just a hypothesis','Fortified (Franklin, TN) declined after demo — first real market signal is negative','No sales = no runway extension case to investors or acquirers','Every technical gap flows downstream to this outcome']},
+    {hd:'What needs to be true before the next sales attempt',cls:'c-amber',items:['Patch status visibility (Phase 2) — non-negotiable for any security buyer','Asset auto-discovery (Phase 1) — manual entry disqualifies in competitive demos','A reference customer or pilot agreement — even unpaid — changes the narrative','Re-approach Fortified only after Phase 1+2 are shipped and demoable']},
+    {hd:'Sales strategy after fixes',cls:'c-green',items:['Lead with MSSP channel — they demo the product, HEAL doesn\'t have to cold sell','Target MSSPs serving community hospitals and regional health systems','White-label model reduces HEAL\'s direct sales burden, accelerates distribution','HIPAA/HITECH compliance angle: frame as compliance tool first, security tool second']},
+  ]},
+  no_patch:{cat:'Critical gap: no patch status visibility',secs:[
+    {hd:'Why this kills deals',cls:'c-red',items:['A vulnerability dashboard with no patch status is an alarm with no snooze button','CISO question #1 in every demo: "Is this already patched?" — HEAL cannot answer','Security teams are drowning in CVE noise — they need signal: patched / unpatched / in-progress','Fortified specifically identified this as a dealbreaker during their evaluation']},
+    {hd:'Phase 2 fix',cls:'c-green',items:['Link CVEs to specific OS build numbers — enables accurate patch status determination','Ingest patch management data: SCCM, Intune patch compliance, or manual patch feed','Show three-state status: patched / unpatched / patch available but not yet deployed','This single feature may be enough to re-open the Fortified conversation']},
+    {hd:'Competitive context',cls:'c-amber',items:['Rapid7 InsightVM and Tenable.io both show patch status natively — table stakes in enterprise','Claroty and Medigate show patch status for medical devices — HEAL needs at minimum parity','Without this, HEAL is below minimum viable feature set for any security buyer']},
+  ]},
+  os_only:{cat:'Critical gap: generic OS versions only',secs:[
+    {hd:'Why this matters',cls:'c-red',items:['CVE applicability is build-specific — Win 11 22H2 and 23H2 have completely different patch states','Showing "Windows 11" without a build number is useless for accurate vulnerability mapping','A CISO patching to the wrong level because of imprecise data is a liability','Any experienced security buyer will catch this gap in minutes']},
+    {hd:'Phase 1 fix',cls:'c-green',items:['Network scanning or Intune ingestion captures specific build numbers automatically','Build number format: major.minor.build.revision (e.g. 10.0.22621.2861 for Win11 22H2)','Once build numbers are captured, CVE-to-build mapping via NVD API is well-documented','12-hour scan frequency: fresh enough for accuracy, slow enough to avoid IDS/IPS triggers']},
+  ]},
+  manual:{cat:'Critical gap: manual asset entry',secs:[
+    {hd:'Why this is a dealbreaker',cls:'c-red',items:['Health systems have thousands of assets — manual entry is not a product, it\'s homework','Any buyer will ask "does it integrate with our CMDB or pull from Intune?" — HEAL can\'t answer','Demo failure mode: product looks incomplete before the core features are even shown','Automated discovery is table stakes — Rapid7, Tenable, CrowdStrike all do this natively']},
+    {hd:'Phase 1 fix: two discovery paths',cls:'c-green',items:['Path A: Intune ingestion — Microsoft Intune API provides full device inventory with build numbers','Path B: Network scanning — lightweight agentless scan captures unmanaged devices, IoT, medical devices','Path A (Intune) is faster: already deployed in 90%+ of health systems on Microsoft stack','Path B fills gaps: unmanaged devices, IoT, medical devices that Intune doesn\'t cover']},
+    {hd:'Why Intune-first is the right bet for 17 days',cls:'c-amber',items:['Intune Graph API is well-documented, OAuth2 auth, returns exact build numbers','Achievable in 1–2 weeks for an experienced developer — fits the capacity window','Builds Microsoft ecosystem alignment relevant for future MSSP partnerships','Network scanning becomes Phase 1b in Q2 — adds the unmanaged device layer']},
+  ]},
+  bad_ux:{cat:'Critical gap: poor UI/UX',secs:[
+    {hd:'What Fortified called out',cls:'c-red',items:['Vulnerability data buried — hard to navigate to actionable information','No prioritization: all CVEs shown at same visual weight regardless of severity','No workflow: no way to assign, track, or resolve a vulnerability from within the tool','Looks like a data dump, not a security operations tool']},
+    {hd:'What good UX looks like in this category',cls:'c-amber',items:['CrowdStrike Falcon: risk score front and center, top 10 critical items always visible','Tenable.io: asset-centric view with patch priority score per asset','Claroty: device criticality + network exposure + patch status in one scannable row','Principle: surface the 10 things that need action today, not 10,000 CVEs']},
+    {hd:'UX fix as part of Phase 2',cls:'c-green',items:['Redesign landing page: severity-tiered view (Critical / High / Medium / Low)','Add patch status column to every CVE row — patched / unpatched / available','Asset detail view: device, OS build, CVE list, patch status, last scan time','This is a design sprint, not an engineering sprint — achievable in days with a focused designer']},
+  ]},
+  phase1:{cat:'Roadmap Phase 1: asset discovery automation',secs:[
+    {hd:'What Phase 1 delivers',cls:'c-green',items:['Automated asset discovery: network scanning + Intune data ingestion','Capture specific build numbers vs generic OS version strings','12-hour scan frequency — sufficient freshness without triggering security alerts','Eliminates manual entry dealbreaker — product becomes self-populating']},
+    {hd:'Implementation path',cls:'c-blue',items:['Week 1: Intune Graph API integration — OAuth2, returns full device inventory with build numbers','Week 2: Lightweight network scanner — nmap-based or similar, agentless, hostname/OS/IP','Week 3: Normalize data into unified asset schema (device ID, hostname, IP, OS, build, last seen)','Week 4: Plug into existing CVE mapping layer — now with build-specific resolution']},
+    {hd:'17-day constraint reality check',cls:'c-amber',items:['Intune integration alone is achievable in 17 days — this is the Phase 1 MVP','Full network scanning may be Phase 1b — deprioritize if capacity is limited','Decision: ship Intune-only discovery in 17 days vs wait for full network scanning','Recommendation: ship Intune MVP, position network scanning as Phase 1b immediately after']},
+  ]},
+  phase2:{cat:'Roadmap Phase 2: CVE mapping + UX',secs:[
+    {hd:'What Phase 2 delivers',cls:'c-green',items:['Link CVEs to specific OS build numbers — enables accurate patch status determination','Three-state patch status: patched / unpatched / available but not deployed','Enhanced UI: severity-tiered dashboard, asset-centric view, workflow integration','Patch management data ingestion: SCCM, Intune patch compliance, or manual feed']},
+    {hd:'Why Phase 2 unlocks sales',cls:'c-blue',items:['Patch status visibility was the #1 Fortified objection — Phase 2 directly addresses it','Build-specific CVE mapping makes HEAL\'s data operationally reliable, not just informational','UX improvements make the demo compelling rather than apologetic','With Phase 1+2 complete: HEAL is at minimum viable product for the MSSP channel']},
+    {hd:'Re-opening Fortified after Phase 2',cls:'c-amber',items:['Reach out to Fortified contact with a specific changelog addressing their three objections','Frame: "We heard your feedback and shipped it — here\'s exactly what\'s new"','Offer a 30-minute focused re-demo on the three exact issues they raised','Even if Fortified passes again: the process builds the sales playbook for other MSSPs']},
+  ]},
+  phase3:{cat:'Roadmap Phase 3: AI decision engine',secs:[
+    {hd:'What Phase 3 delivers',cls:'c-green',items:['AI prioritization: ranks vulnerabilities by exploitability + asset criticality + patch availability','Recommendation engine: "These 5 CVEs need attention this week — here\'s why and how to fix"','Transforms HEAL from a data dashboard into a decision support tool','Healthcare-specific scoring: HIPAA context, medical device criticality, patient safety risk']},
+    {hd:'The Mythos / AI uncertainty risk',cls:'c-red',items:['Rapidly commoditizing AI may erode Phase 3 moat before it ships','CrowdStrike, Tenable, Rapid7 all shipping AI prioritization features in 2024–25','Generic AI prioritization will become table stakes — not a differentiator','Risk: spending capacity on Phase 3 and arriving at a crowded, commoditized feature']},
+    {hd:'Strategic recommendation',cls:'c-amber',items:['Do not start Phase 3 until Phase 1+2 are shipped and generating sales signal','Phase 3 is a Series A story, not a pre-revenue product feature','Reframe Phase 3 as healthcare-specific AI — not general AI prioritization','Defensible moat: HIPAA risk scoring, medical device criticality, patient safety context — horizontal platforms won\'t replicate this']},
+  ]},
+  intune:{cat:'Technical enabler: Microsoft Intune',secs:[
+    {hd:'Why Intune is Phase 1\'s fastest path',cls:'c-green',items:['Intune Graph API is well-documented, returns exact device build numbers','Already deployed in 80–90% of health systems on Microsoft 365 stack','OAuth2 authentication — 1–2 day integration for an experienced developer','Returns: device name, OS, build number, compliance status, last check-in, assigned user']},
+    {hd:'Limitations to plan for',cls:'c-amber',items:['Only covers Intune-enrolled devices — unmanaged devices, IoT, medical devices are invisible','Medical devices rarely enrolled in Intune — network scanning still needed for those','Guest networks and BYOD devices will be missed — important caveat to acknowledge in demos']},
+  ]},
+  network_scan:{cat:'Technical enabler: network scanning',secs:[
+    {hd:'What network scanning adds',cls:'c-green',items:['Discovers all assets on network regardless of enrollment status — fills Intune gaps','Critical for medical devices, IoT, lab equipment, imaging systems — rarely in Intune','Provides network topology context: which devices can reach which other devices','Enables discovery of shadow IT and unmanaged endpoints']},
+    {hd:'Implementation considerations',cls:'c-amber',items:['12-hour frequency: slow enough to avoid triggering IDS/IPS network monitoring alerts','Agentless scan (nmap-based) preferred — no software to install on endpoints','Health system network segmentation: may need multiple scan agents for different VLANs','Coordinate with health system IT before first deployment — scan traffic can look like an attack']},
+  ]},
+  hiso:{cat:'ICP — Primary buyer: hospital CISO / ISO',secs:[
+    {hd:'Who they are',cls:'c-purple',items:['Chief Information Security Officer or ISO at hospital / health system','Responsible for HIPAA Security Rule compliance — CVE management is a direct obligation','Budget owner for security tools: typically $500K–$5M annually depending on system size','Visibility increasing post-Change Healthcare breach — now reporting to board in many systems']},
+    {hd:'Why they buy',cls:'c-green',items:['HIPAA Security Rule requires documented risk analysis and vulnerability management','Change Healthcare breach (2024): $2.5B+ in losses — woke up every health system CISO','HHS OCR enforcement escalating: average HIPAA settlement now $1.2M — tool is cheap vs the fine','Ransomware targeting healthcare up 264% since 2018 — board-level issue in every system']},
+    {hd:'What they need to see in a demo',cls:'c-blue',items:['Asset auto-discovery — they will ask "how does it find my devices?" first','Patch status: "Is this already patched?" — must be answerable before they engage further','Build-specific CVE mapping — experienced CISOs know the difference between OS version and build number','Integration story: does it connect to our SIEM, ticketing system, or CMDB?']},
+    {hd:'Buying signals to look for',cls:'c-amber',items:['Recent OCR audit or HIPAA breach notification in the past 12 months','Post-Change Healthcare — many CISOs received new security budget in 2024–25','Active RFP for vulnerability management or asset discovery tool','Joining HSCC (Health Sector Cybersecurity Coordination Council) — engaged in this space']},
+  ]},
+  mssp:{cat:'ICP — Channel: MSSP partner',secs:[
+    {hd:'Why MSSP is the right GTM channel',cls:'c-green',items:['MSSPs have existing health system relationships — no cold outreach needed','MSSP white-labels HEAL: their brand, their relationship, HEAL\'s technology','Reduces HEAL\'s direct sales burden — critical given 17-day capacity constraint','Fortified is the prototype of this model — they serve health system clients already']},
+    {hd:'What MSSPs need from HEAL',cls:'c-blue',items:['White-label capability: HEAL branding removable, partner branding insertable','API access: MSSP needs to pull HEAL data into their SOC dashboard or reporting stack','Reliable uptime and accurate data — they are staking their client relationships on HEAL','Competitive pricing: per-seat or per-asset model with MSSP margin built in']},
+    {hd:'MSSP target list',cls:'c-amber',items:['Fortified Health Security (Franklin, TN) — already in conversation, needs Phase 1+2 first','Clearwater Compliance — healthcare-only MSSP, strong CISO relationships','Meditology Services — healthcare cybersecurity, HIPAA compliance focus','Nordic Consulting / Avanade — broader MSSP with healthcare vertical']},
+    {hd:'Re-engaging Fortified specifically',cls:'c-purple',items:['They declined on three specific fixable gaps: patch status, build numbers, manual entry','All three are addressed in Phase 1+2 — this is a winnable re-engagement post-ship','Reach out immediately after Phase 2 ships with a specific changelog','Offer: free 60-day pilot with their first health system client — reduce their risk to zero']},
+  ]},
+  hlth_sys:{cat:'ICP — End customer: health system IT leadership',secs:[
+    {hd:'Who they are',cls:'c-purple',items:['VP of IT / CIO at community hospital or regional IDN (5–20 hospitals)','Controls budget approval for security tools — CISO\'s boss in many systems','Focused on operational continuity and regulatory compliance more than security specifics','Post-Change Healthcare: now directly accountable to board for cyber risk']},
+    {hd:'The pitch for this buyer',cls:'c-amber',items:['Lead with compliance, not security: "This satisfies your HIPAA risk analysis requirement"','HEAL as cyber insurance prerequisite: many carriers now require documented vuln management','Show the dashboard in 10 minutes — this buyer does not want a technical deep-dive','ROI framing: cost of a HIPAA breach ($1.2M avg settlement) vs annual cost of HEAL']},
+  ]},
+  rapid7:{cat:'Competitor: Rapid7 / Tenable',secs:[
+    {hd:'What they do',cls:'c-amber',items:['Enterprise vulnerability management: Rapid7 InsightVM, Tenable.io','Full asset discovery, network scanning, agentless and agent-based options','Build-specific CVE mapping, patch status, risk scoring — all natively included','Multi-cloud, on-prem, container, IoT coverage — comprehensive attack surface management']},
+    {hd:'Why HEAL can still compete',cls:'c-green',items:['Rapid7/Tenable are complex, expensive ($50K–$500K+/yr), require trained staff','Community hospitals and small IDNs cannot afford or operate enterprise tools','Healthcare-specific context: HEAL can embed HIPAA compliance framing they don\'t prioritize','MSSP channel: partners serving smaller health systems want simpler, cheaper, manageable tools']},
+    {hd:'What HEAL must avoid',cls:'c-red',items:['Competing head-to-head in large health system RFPs — they will lose every time','Positioning as a full-featured enterprise platform before earning that right','Pricing at enterprise levels before enterprise features are delivered']},
+  ]},
+  claroty:{cat:'Competitor: Claroty / Medigate',secs:[
+    {hd:'What they do',cls:'c-amber',items:['Healthcare-specific OT/IoT and medical device security platforms','Specialized in clinical asset discovery: infusion pumps, imaging, monitoring, surgical robots','Deep medical device CVE database — more comprehensive than generic IT vuln tools','Partnered with major healthcare IT distributors: CDW Healthcare, Presidio']},
+    {hd:'The medical device gap HEAL has today',cls:'c-red',items:['Claroty and Medigate own the medical device security space — HEAL has no equivalent','Medical devices rarely in Intune, often running legacy OS, need specialized CVE databases','If a CISO asks about infusion pumps or MRI machines — HEAL cannot answer today']},
+    {hd:'Partnership angle (recommended)',cls:'c-green',items:['Rather than compete: integrate with Claroty/Medigate for medical device data layer','HEAL handles IT endpoints (Windows/Linux); Claroty handles clinical asset layer','Combined: full hospital attack surface in one HEAL dashboard — differentiates vs both alone','Approach with a data-sharing API proposal — they want distribution, HEAL wants data depth']},
+  ]},
+  fortified:{cat:'Competitor / prospect: Fortified Health Security',secs:[
+    {hd:'What happened in the demo',cls:'c-red',items:['Fortified is a Franklin, TN managed security services provider serving health systems','They evaluated HEAL as a potential technology partnership or acquisition','Declined after demo — three specific reasons: patch status, build numbers, manual entry','This is the most valuable market signal HEAL has — treat it as a product roadmap, not a rejection']},
+    {hd:'Why Fortified still matters most',cls:'c-green',items:['They are exactly the MSSP profile HEAL needs as a first channel partner','Their decline was specific and fixable — not "we don\'t need this" but "fix these three things"','Re-engaging after Phase 1+2 ships is HEAL\'s highest-probability near-term sales path','Understanding their client base helps HEAL scope the ICP more precisely']},
+    {hd:'Re-engagement playbook',cls:'c-amber',items:['Ship Phase 1+2 → send Fortified a specific changelog addressing their three objections','Request a 30-minute re-demo — not a full sales cycle, a focused update call','If they pass again: ask who else in the MSSP market they would recommend','If they engage: offer 60-day free pilot with one of their health system clients']},
+  ]},
+  crowdstrike:{cat:'Competitor: CrowdStrike Falcon',secs:[
+    {hd:'What they do',cls:'c-amber',items:['Full endpoint detection and response (EDR) + vulnerability management','Falcon Spotlight: agentless vulnerability visibility layered on EDR agent data','AI-powered threat prioritization — exactly what HEAL\'s Phase 3 aims to deliver','Already deployed at 30%+ of Fortune 500 including many large health systems']},
+    {hd:'Why HEAL is not directly competing today',cls:'c-green',items:['CrowdStrike targets enterprise: minimum deal size $100K+, requires a trained security team','Community hospitals and small IDNs cannot afford or staff CrowdStrike deployments','HEAL\'s MSSP channel partners may already use CrowdStrike — integration opportunity, not competition','HEAL can position as the reporting/compliance layer on top of existing CrowdStrike data']},
+    {hd:'Long-term risk',cls:'c-red',items:['If CrowdStrike adds a healthcare compliance dashboard SKU — HEAL\'s market narrows significantly','Phase 3 AI must be healthcare-specific to be defensible vs horizontal platforms','HEAL\'s moat: HIPAA-specific risk scoring, medical device context, community hospital pricing and simplicity']},
+  ]},
+  hipaa:{cat:'Policy / regulation: HIPAA / HITECH / HITRUST',secs:[
+    {hd:'Why regulation is HEAL\'s best sales tool',cls:'c-green',items:['HIPAA Security Rule §164.308(a)(1): requires covered entities to conduct risk analysis — CVE management is part of this','HITECH Act: breach notification + increased penalties — raised stakes for non-compliance','HHS OCR enforcement: 2023–24 saw record enforcement including a $4.75M settlement','Cyber insurance: most health-focused underwriters now require documented vuln management programs']},
+    {hd:'How to use compliance in every sales conversation',cls:'c-amber',items:['Open every CISO and CIO meeting with: "This helps satisfy your HIPAA risk analysis obligation"','Frame HEAL as a compliance tool first, security tool second — lowers the buying barrier','Change Healthcare breach aftermath: HHS issued specific guidance on vuln management — HEAL is the answer','Joint Commission and CMS Conditions of Participation increasingly include cybersecurity']},
+    {hd:'HITRUST certification angle',cls:'c-blue',items:['HITRUST CSF is the de facto healthcare security framework — large systems require it of vendors','HEAL pursuing HITRUST certification would be a significant sales accelerator','Even without certification: mapping HEAL features to HITRUST controls in the sales deck helps close faster']},
+  ]},
+  mythos:{cat:'Strategic uncertainty: Mythos / AI models',secs:[
+    {hd:'What the uncertainty is',cls:'c-red',items:['Mythos and rapidly advancing AI models may commoditize Phase 3 before it ships','CrowdStrike, Tenable, Rapid7 all shipping AI prioritization features in 2024–25','The window for "AI-powered vulnerability prioritization" as a differentiator may be closing','HEAL could spend limited engineering capacity on Phase 3 and arrive at a crowded feature']},
+    {hd:'How to reframe this risk',cls:'c-amber',items:['Horizontal AI prioritization will commoditize — healthcare-specific AI will not','Defensible Phase 3: HIPAA context scoring, medical device criticality, patient safety risk weighting','A "this CVE affects a pacemaker network, patch it first" AI is not commoditized by Mythos','Reframe Phase 3 as healthcare AI, not general AI — changes the competitive moat entirely']},
+    {hd:'The 17-day constraint makes this moot for now',cls:'c-blue',items:['Do not start Phase 3 before Phase 1+2 are shipped — capacity is too constrained','Phase 3 is a Q3/Q4 initiative and a fundraising narrative, not a 17-day sprint','Use the 17 days: Intune integration + patch status visibility + UX triage','That alone reopens Fortified and positions HEAL for the next investment or acquisition conversation']},
+  ]},
+};
+
+const SHOW={all:['gap','fix','gtm','comp'],gaps:['gap'],roadmap:['fix'],comp:['comp','gtm'],gtm:['gtm'],risk:['gap','comp']};
+let view='all', sel=null, hov=null, W, H, dpr, canvas, ctx;
+
+const ROW_LABELS=[
+  {y:30, t:'HEAL SECURITY — CORE + PIPELINE'},
+  {y:148,t:'CRITICAL GAPS (BLOCKING SALES)'},
+  {y:272,t:'TECHNICAL ROADMAP + ENABLERS'},
+  {y:393,t:'ICP — BUYERS'},
+  {y:508,t:'COMPETITIVE LANDSCAPE + POLICY'},
+];
+
+function sv(v,btn){view=v;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');draw();}
+
+function setup(){
+  canvas=document.getElementById('c');
+  W=canvas.parentElement.offsetWidth; H=620;
+  dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr); draw();
+}
+
+function px(n){return n.x/680*W;}
+function py(n){return n.y;}
+function nr(n){return(n.r||20)*(sel===n.id?1.18:1);}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const dark=matchMedia('(prefers-color-scheme:dark)').matches;
+  const types=SHOW[view]||SHOW.all;
+
+  ROW_LABELS.forEach(r=>{
+    ctx.font=`600 8px ${getComputedStyle(document.body).fontFamily}`;
+    ctx.fillStyle=dark?'rgba(180,178,168,0.38)':'rgba(60,58,52,0.38)';
+    ctx.textAlign='left'; ctx.fillText(r.t,6,r.y);
+    ctx.beginPath(); ctx.moveTo(6,r.y+5); ctx.lineTo(W-6,r.y+5);
+    ctx.strokeStyle=dark?'rgba(180,178,168,0.1)':'rgba(60,58,52,0.1)';
+    ctx.lineWidth=0.5; ctx.stroke();
+  });
+
+  EDGES.forEach(e=>{
+    if(!types.includes(e.type))return;
+    const na=NODES.find(n=>n.id===e.a), nb=NODES.find(n=>n.id===e.b);
+    if(!na||!nb)return;
+    const ax=px(na),ay=py(na),bx=px(nb),by=py(nb);
+    const isActive=sel&&(sel===e.a||sel===e.b);
+    const col=ECOLS[e.type], bw=EW[e.type]||1.5;
+    ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by);
+    ctx.strokeStyle=col+(isActive?'ff':'55');
+    ctx.lineWidth=isActive?bw+1:bw;
+    if(e.type==='comp'){ctx.setLineDash([4,3]);}else{ctx.setLineDash([]);}
+    ctx.stroke(); ctx.setLineDash([]);
+    if(isActive){
+      const ang=Math.atan2(by-ay,bx-ax);
+      const tx=bx-Math.cos(ang)*(nr(nb)+2), ty=by-Math.sin(ang)*(nr(nb)+2);
+      ctx.beginPath();
+      ctx.moveTo(tx,ty); ctx.lineTo(tx-8*Math.cos(ang-.38),ty-8*Math.sin(ang-.38));
+      ctx.moveTo(tx,ty); ctx.lineTo(tx-8*Math.cos(ang+.38),ty-8*Math.sin(ang+.38));
+      ctx.strokeStyle=col+'ff'; ctx.lineWidth=1.5; ctx.stroke();
+      if(e.label){
+        const mx=(ax+bx)/2, my=(ay+by)/2;
+        ctx.font=`500 9px ${getComputedStyle(document.body).fontFamily}`;
+        const bww=ctx.measureText(e.label).width+10;
+        ctx.fillStyle=dark?'rgba(20,20,18,0.88)':'rgba(255,255,255,0.92)';
+        ctx.fillRect(mx-bww/2,my-8,bww,13);
+        ctx.fillStyle=col; ctx.textAlign='center';
+        ctx.fillText(e.label,mx,my+2);
+      }
+    }
+  });
+
+  NODES.forEach(n=>{
+    const x=px(n),y=py(n),r=nr(n);
+    const col=CATS[n.cat];
+    const isSel=sel===n.id, isHov=hov===n.id;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=col+(isSel?'ff':dark?'bb':'dd');
+    ctx.fill();
+    if(isSel||isHov){ctx.strokeStyle=col; ctx.lineWidth=2.5; ctx.stroke();}
+    ctx.font=`${isSel?600:400} ${r>26?11:10}px ${getComputedStyle(document.body).fontFamily}`;
+    ctx.fillStyle='rgba(255,255,255,0.97)'; ctx.textAlign='center';
+    const lines=n.label.split('\n'), lh=11, sy=y-(lines.length-1)*lh/2;
+    lines.forEach((l,i)=>ctx.fillText(l,x,sy+i*lh+3));
+  });
+}
+
+function getNode(mx,my){
+  for(let i=NODES.length-1;i>=0;i--){
+    const n=NODES[i], x=px(n), y=py(n), r=nr(n)+6;
+    if((mx-x)**2+(my-y)**2<=r*r) return n.id;
+  }
+  return null;
+}
+
+function showPanel(id){
+  const d=DATA[id]; if(!d) return;
+  document.getElementById('def-msg').style.display='none';
+  document.getElementById('detail').style.display='block';
+  const nm=NODES.find(n=>n.id===id)?.label.replace('\n',' ')||id;
+  document.getElementById('pn').textContent=nm;
+  const col=CATS[NODES.find(n=>n.id===id)?.cat]||'#888';
+  document.getElementById('pc').textContent=d.cat;
+  document.getElementById('pc').style.color=col;
+  let html='';
+  d.secs.forEach(s=>{
+    html+=`<div class="p-hd">${s.hd}</div>`;
+    s.items.forEach(it=>{ html+=`<div class="p-item ${s.cls}">${it}</div>`; });
+  });
+  document.getElementById('pbody').innerHTML=html;
+  document.getElementById('xbtn').onclick=()=>{
+    prompt('Copy this to ask Claude:','Tell me more about '+nm+' in the context of HEAL Security');
+  };
+}
+
+window.addEventListener('load',()=>{
+  setup();
+  canvas.addEventListener('click',e=>{
+    const r=canvas.getBoundingClientRect();
+    const id=getNode(e.clientX-r.left,e.clientY-r.top);
+    if(id&&DATA[id]){sel=id; showPanel(id);}
+    else{sel=null; document.getElementById('def-msg').style.display='block'; document.getElementById('detail').style.display='none';}
+    draw();
+  });
+  canvas.addEventListener('mousemove',e=>{
+    const r=canvas.getBoundingClientRect();
+    hov=getNode(e.clientX-r.left,e.clientY-r.top);
+    canvas.style.cursor=hov?'pointer':'default'; draw();
+  });
+  canvas.addEventListener('mouseleave',()=>{hov=null; draw();});
+});
+window.addEventListener('resize',()=>setTimeout(setup,60));
+</script>
+</body>
+</html>
