@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlas — Commercialization Map</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --bg: #ffffff; --bg2: #f5f4f0; --bg3: #eeecea;
+    --text: #1a1a18; --text2: #5f5e5a; --text3: #888780;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18; --bg2: #232320; --bg3: #2c2c29;
+      --text: #e8e6de; --text2: #a8a69e; --text3: #6e6c66;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+    }
+  }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); padding: 16px; }
+  .hdr { background: #1e3a5f; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .hdr-l .ht { font-size: 16px; font-weight: 600; color: #fff; }
+  .hdr-l .hs { font-size: 11px; color: #a8c8e8; margin-top: 3px; }
+  .hdr-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge { font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+  .badge-green { background: #0F6E56; color: #fff; }
+  .badge-amber { background: #854F0B; color: #fff; }
+  #tabs { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+  .tab { padding: 5px 13px; border-radius: 20px; border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text2); cursor: pointer; font-size: 11px; font-family: var(--font); transition: all .15s; }
+  .tab.on { background: var(--bg); color: var(--text); border-color: var(--text3); font-weight: 600; }
+  .tab:hover { background: var(--bg3); }
+  #layout { display: grid; grid-template-columns: 1fr 298px; gap: 12px; align-items: start; }
+  canvas { display: block; width: 100%; border-radius: 8px; border: 0.5px solid var(--border); cursor: default; }
+  #panel { background: var(--bg); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px; min-height: 420px; }
+  .p-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .p-cat  { font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; margin-bottom: 10px; }
+  .p-hd   { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text3); margin: 10px 0 4px; }
+  .p-item { font-size: 11px; line-height: 1.55; margin-bottom: 3px; padding-left: 10px; position: relative; color: var(--text2); }
+  .p-item:before { content: ""; position: absolute; left: 0; top: 6px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: .65; }
+  .c-blue   { color: #0C447C; } .c-blue:before   { background: #0C447C; }
+  .c-green  { color: #0F6E56; } .c-green:before  { background: #0F6E56; }
+  .c-red    { color: #A32D2D; } .c-red:before    { background: #A32D2D; }
+  .c-amber  { color: #854F0B; } .c-amber:before  { background: #854F0B; }
+  .c-purple { color: #3C3489; } .c-purple:before { background: #3C3489; }
+  .c-teal   { color: #085041; } .c-teal:before   { background: #085041; }
+  .def { color: var(--text3); font-size: 12px; line-height: 1.65; padding-top: 6px; }
+  .xbtn { margin-top: 12px; width: 100%; font-size: 11px; padding: 7px; border-radius: 8px; border: 0.5px solid var(--border2); background: var(--bg2); color: var(--text); cursor: pointer; font-family: var(--font); }
+  .xbtn:hover { background: var(--bg3); }
+  #leg { margin-top: 10px; background: var(--bg2); border: 0.5px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .leg-t { font-size: 9px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text3); margin-bottom: 5px; }
+  .leg-r { display: flex; flex-wrap: wrap; gap: 5px 14px; margin-bottom: 8px; }
+  .li { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text2); }
+  .ld { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .le { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+  .ll { height: 3px; width: 22px; border-radius: 1px; flex-shrink: 0; }
+  @media (max-width: 600px) { #layout { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-l">
+    <div class="ht">Atlas — Commercialization Map</div>
+    <div class="hs">Member-controlled supply chain data network · Hashed Health · Founding member formation phase · Apr 2026</div>
+  </div>
+  <div class="hdr-badges">
+    <div class="badge badge-green">Founding Zoom: May 4</div>
+    <div class="badge badge-amber">6 confirmed members</div>
+  </div>
+</div>
+
+<div id="tabs">
+  <button class="tab on" onclick="sv('all',this)">Full map</button>
+  <button class="tab" onclick="sv('structure',this)">Two-entity structure</button>
+  <button class="tab" onclick="sv('members',this)">Member network</button>
+  <button class="tab" onclick="sv('revenue',this)">Revenue streams</button>
+  <button class="tab" onclick="sv('usecases',this)">Use case tiers</button>
+  <button class="tab" onclick="sv('comp',this)">Competitive</button>
+  <button class="tab" onclick="sv('risks',this)">Risks / open Qs</button>
+</div>
+
+<div id="layout">
+  <div><canvas id="c" height="640"></canvas></div>
+  <div id="panel">
+    <div id="def-msg" class="def">Click any node to explore Atlas's two-entity structure, founding member profiles, revenue model options, use case prioritization, competitive positioning, and commercialization risks.</div>
+    <div id="detail" style="display:none">
+      <div class="p-name" id="pn"></div>
+      <div class="p-cat"  id="pc"></div>
+      <div id="pbody"></div>
+      <button class="xbtn" id="xbtn">Copy question to explore deeper ↗</button>
+    </div>
+  </div>
+</div>
+
+<div id="leg">
+  <div class="leg-t">Node type</div>
+  <div class="leg-r">
+    <div class="li"><div class="ld" style="background:#1e3a5f"></div>Atlas / core</div>
+    <div class="li"><div class="ld" style="background:#0F6E56"></div>Confirmed member</div>
+    <div class="li"><div class="ld" style="background:#854F0B"></div>Tentative / outstanding</div>
+    <div class="li"><div class="ld" style="background:#3C3489"></div>Revenue stream</div>
+    <div class="li"><div class="ld" style="background:#185FA5"></div>Use case tier</div>
+    <div class="li"><div class="ld" style="background:#A32D2D"></div>Competitor / risk</div>
+    <div class="li"><div class="ld" style="background:#444441"></div>Enabler / partner</div>
+  </div>
+  <div class="leg-t">Connection type</div>
+  <div class="leg-r" style="margin-bottom:0">
+    <div class="le"><div class="ll" style="background:#0F6E56"></div>Member / data flow</div>
+    <div class="le"><div class="ll" style="background:#3C3489"></div>Revenue path</div>
+    <div class="le"><div class="ll" style="background:#185FA5"></div>Value delivery</div>
+    <div class="le"><div class="ll" style="background:repeating-linear-gradient(90deg,#A32D2D 0,#A32D2D 4px,transparent 4px,transparent 7px)"></div>Competitive threat</div>
+  </div>
+</div>
+
+<script>
+const CATS={core:'#1e3a5f',member:'#0F6E56',tentative:'#854F0B',revenue:'#3C3489',usecase:'#185FA5',comp:'#A32D2D',partner:'#444441'};
+const ECOLS={member:'#0F6E56',revenue:'#3C3489',value:'#185FA5',comp:'#A32D2D',struct:'#1e3a5f'};
+const EW={member:2,revenue:2,value:1.8,comp:1.6,struct:2.2};
+
+const NODES=[
+  {id:'atlas',    label:'Atlas\nNetwork',          cat:'core',     x:340,y:55,  r:32},
+  {id:'engine',   label:'Engine\nRoom',             cat:'partner',  x:160,y:55,  r:24},
+  {id:'hashed',   label:'Hashed\nHealth',           cat:'partner',  x:520,y:55,  r:22},
+  {id:'piedmont', label:'Piedmont',                 cat:'member',   x:80, y:175, r:19},
+  {id:'osf',      label:'OSF',                      cat:'member',   x:180,y:175, r:19},
+  {id:'novant',   label:'Novant',                   cat:'member',   x:270,y:175, r:19},
+  {id:'trinity',  label:'Trinity\nHealth',           cat:'member',   x:365,y:175, r:20},
+  {id:'sutter',   label:'Sutter\nHealth',            cat:'member',   x:460,y:175, r:20},
+  {id:'bjc',      label:'BJC\nHealth',               cat:'member',   x:555,y:175, r:20},
+  {id:'cleveland',label:'Cleveland\nClinic',         cat:'tentative',x:100,y:270, r:18},
+  {id:'stanford', label:'Stanford',                  cat:'tentative',x:210,y:270, r:17},
+  {id:'mayo',     label:'Mayo\nClinic',              cat:'tentative',x:310,y:270, r:18},
+  {id:'intermtn', label:'Intermountain',             cat:'tentative',x:415,y:270, r:17},
+  {id:'uchealth', label:'UCHealth',                  cat:'tentative',x:510,y:270, r:17},
+  {id:'upmc',     label:'UPMC',                     cat:'tentative',x:600,y:270, r:17},
+  {id:'r_member', label:'Member\nFees',              cat:'revenue',  x:100,y:385, r:20},
+  {id:'r_supplier',label:'Supplier\nData Products',  cat:'revenue',  x:220,y:385, r:22},
+  {id:'r_toll',   label:'Vendor\nToll / Rev Share',  cat:'revenue',  x:355,y:385, r:22},
+  {id:'r_plaid',  label:'Plaid-style\nData Layer',   cat:'revenue',  x:480,y:385, r:20},
+  {id:'r_agent',  label:'Agentic\nProducts',         cat:'revenue',  x:590,y:385, r:20},
+  {id:'uc_t1',    label:'Tier 1\nWedge Use Cases',   cat:'usecase',  x:160,y:490, r:22},
+  {id:'uc_t2',    label:'Tier 2\nSupplier Revenue',  cat:'usecase',  x:310,y:490, r:22},
+  {id:'uc_t3',    label:'Tier 3\nExpansion',         cat:'usecase',  x:450,y:490, r:20},
+  {id:'uc_t4',    label:'Tier 4\nInfrastructure',    cat:'usecase',  x:580,y:490, r:18},
+  {id:'clarium',  label:'Clarium',                   cat:'comp',     x:120,y:590, r:20},
+  {id:'surgence', label:'Surgence /\nPalantir',       cat:'comp',     x:260,y:590, r:20},
+  {id:'gpo',      label:'GPOs /\nVizient',            cat:'comp',     x:390,y:590, r:18},
+  {id:'ghx',      label:'GHX /\nDistributors',        cat:'comp',     x:510,y:590, r:18},
+  {id:'ed',       label:'Ed Hisscock\n(Trinity)',     cat:'partner',  x:620,y:590, r:18},
+];
+
+const EDGES=[
+  {a:'hashed',b:'engine',   type:'struct', label:'builds + operates'},
+  {a:'engine',b:'atlas',    type:'struct', label:'processor contract'},
+  {a:'atlas',b:'piedmont',  type:'member', label:'founding member'},
+  {a:'atlas',b:'osf',       type:'member', label:'founding member'},
+  {a:'atlas',b:'novant',    type:'member', label:'founding member'},
+  {a:'atlas',b:'trinity',   type:'member', label:'founding member'},
+  {a:'atlas',b:'sutter',    type:'member', label:'founding member'},
+  {a:'atlas',b:'bjc',       type:'member', label:'changemaker'},
+  {a:'atlas',b:'cleveland', type:'member', label:'tentative'},
+  {a:'atlas',b:'stanford',  type:'member', label:'tentative'},
+  {a:'atlas',b:'mayo',      type:'member', label:'tentative'},
+  {a:'atlas',b:'intermtn',  type:'member', label:'outstanding'},
+  {a:'atlas',b:'uchealth',  type:'member', label:'outstanding'},
+  {a:'atlas',b:'upmc',      type:'member', label:'outstanding'},
+  {a:'atlas',b:'r_member',  type:'revenue',label:'Year 1'},
+  {a:'atlas',b:'r_supplier',type:'revenue',label:'Primary long-term'},
+  {a:'atlas',b:'r_toll',    type:'revenue',label:'Most differentiated'},
+  {a:'atlas',b:'r_plaid',   type:'revenue',label:'Year 2-3'},
+  {a:'atlas',b:'r_agent',   type:'revenue',label:'Agentic layer'},
+  {a:'r_supplier',b:'uc_t2',type:'value',  label:'revenue engine'},
+  {a:'r_toll',b:'uc_t1',    type:'value',  label:'funds operations'},
+  {a:'atlas',b:'uc_t1',     type:'value',  label:'wedge'},
+  {a:'atlas',b:'uc_t2',     type:'value',  label:'monetize'},
+  {a:'clarium',b:'atlas',   type:'comp',   label:'VC-backed threat'},
+  {a:'surgence',b:'atlas',  type:'comp',   label:'distributor conflict'},
+  {a:'gpo',b:'atlas',       type:'comp',   label:'incumbent analog'},
+  {a:'ed',b:'atlas',        type:'struct', label:'co-convener'},
+  {a:'sutter',b:'clarium',  type:'comp',   label:'dual-track risk'},
+  {a:'cleveland',b:'clarium',type:'comp',  label:'active relationship'},
+  {a:'mayo',b:'surgence',   type:'comp',   label:'active relationship'},
+];
+
+const DATA={
+  atlas:{cat:'Atlas Network — core entity',secs:[
+    {hd:'What Atlas is',cls:'c-blue',items:['Member-governed supply chain data network for U.S. health systems','Founding members contribute supply chain data into a shared environment they control','Network makes data available to commercial counterparties + produces operational tools and benchmarks','The wedge: health systems own the network, govern data use, and share in economic upside']},
+    {hd:'The two-entity structure (most critical framing)',cls:'c-teal',items:['Atlas = member-governed network. Members own it, govern it, set data use rules. No vendor board seats.','Engine Room = separate for-profit technology company built by Hashed Health. Operates under contract.','Engine Room earns on technology layer — does NOT own member data or profit from selling it','This separation is structural protection, not a policy promise. Members have been burned before.']},
+    {hd:'Why now',cls:'c-green',items:['Supply chain instability is structural, not episodic — backorders and item master fragmentation persist','Health systems are actively losing data advantage to vendor-owned platforms (Clarium, Surgence)','AI is concentrating power in whoever aggregates clean longitudinal supply chain data first','Late participants will be downstream consumers of intelligence — not producers of it']},
+    {hd:'Founding meeting status',cls:'c-amber',items:['90-minute founding member Zoom targeted for week of May 4, 2026','Pre-read materials going out 48 hours in advance','6 confirmed members, 3 tentative (all with existing vendor conflicts), 3 outstanding discovery meetings','Immediate work: business model finalization, founding documents, discovery sprint design']},
+  ]},
+  engine:{cat:'Engine Room — technology entity',secs:[
+    {hd:'What the Engine Room does',cls:'c-blue',items:['Handles data ingestion, standardization, normalization, enhancement, and API distribution','Builds APIs, apps, data products, and self-service tools for vendors and members','Operates under contract to Atlas network — not a free agent','Revenue model is technology fees — not data ownership or data sales']},
+    {hd:'The conflict to name openly',cls:'c-amber',items:['Hashed Health has a financial interest in the Engine Room — must be disclosed in every founding conversation','Founding members will discover it regardless — owning it as a transparency point is materially different from having it surface as a conflict','Member organizations are explicitly invited to invest in the Engine Room — resolves rather than compounds the conflict','The Engine Room is investable precisely because its revenue model is technology delivery, not data access']},
+    {hd:'Why the separation matters',cls:'c-green',items:['The moment the Engine Room tries to monetize raw data directly, Atlas governance prevents it — that is the design','Policy-based governance fails over time. Structural separation does not.','SWIFT analogy: member-owned cooperative + separately operated technology infrastructure']},
+  ]},
+  hashed:{cat:'Hashed Health — incubator and builder',secs:[
+    {hd:'Role in Atlas',cls:'c-blue',items:['Incubating and operating Atlas in its formation period','Building the Engine Room as the technology processing layer','Co-leading Atlas with Ed Hisscock (former CSCO, Trinity Health)','Peer Supply is a separately incubated Hashed portfolio company — do not conflate with Atlas in member conversations']},
+    {hd:'Hashed\'s commercial model (open question)',cls:'c-amber',items:['Beyond Engine Room equity: Hashed\'s compensation for incubating Atlas should be made explicit in writing before founding documents are signed','Engine Room equity structure: what is the cap, the terms, and the governance implications?','Does member Engine Room equity create or resolve the conflict-of-interest concern?','Current structure should be documented before founding members ask — they will ask']},
+  ]},
+  piedmont:{cat:'Founding member: Piedmont Health',secs:[
+    {hd:'Status and profile',cls:'c-green',items:['Confirmed founding member — supportive of founding model','Regional health system based in Georgia — approximately 11 hospitals','Profile: Sovereignty seeker — data control is the primary motivation for joining','Likely anchor for southeastern U.S. presence in the founding cohort']},
+    {hd:'What they need from Atlas',cls:'c-blue',items:['Structural data governance — not a policy promise from a vendor','Peer benchmarking on supply chain spend and contract pricing','Reduction in integration burden: stop rebuilding the same vendor feeds repeatedly','Economic participation in the network\'s upside from data they already generate']},
+  ]},
+  osf:{cat:'Founding member: OSF HealthCare',secs:[
+    {hd:'Status and profile',cls:'c-green',items:['Confirmed founding member — supportive of founding model','Regional health system based in Illinois — approximately 16 hospitals','Known for innovation and digital health initiative investment','Profile: Sovereignty seeker — governance and data control are primary motivations']},
+  ]},
+  novant:{cat:'Founding member: Novant Health',secs:[
+    {hd:'Status and profile',cls:'c-green',items:['Confirmed founding member — supportive of founding model','Mid-Atlantic regional health system — approximately 15 hospitals across the Carolinas and Virginia','Profile: Sovereignty seeker — data governance and supply chain resilience motivations','Brings geographic diversity: Carolinas/Virginia presence in the founding cohort']},
+  ]},
+  trinity:{cat:'Founding member: Trinity Health',secs:[
+    {hd:'Status and profile',cls:'c-green',items:['Confirmed founding member — strong backing from Ed Hisscock','Ed Hisscock is former Chief Supply Chain Officer at Trinity — highest-credibility co-convener','Trinity is one of the largest Catholic health systems in the U.S. — 88 hospitals','Their participation anchors the founding cohort with scale and institutional legitimacy']},
+    {hd:'Ed Hisscock\'s role',cls:'c-teal',items:['Co-leads Atlas alongside Hashed Health','Convenes the founding meeting as a peer, not as a vendor pitching a product','His framing sets the tone: peer inquiry, not sales pitch','His CSCO background means he has lived the exact problem Atlas is solving — authentic credibility']},
+  ]},
+  sutter:{cat:'Founding member: Sutter Health',secs:[
+    {hd:'Status and profile',cls:'c-green',items:['Confirmed founding member — supportive of founding model','Critical note: Sutter is also a Clarium collaborator — dual-track relationship to manage','Strategy: allow coexistence in the founding period, prove Atlas value, let Sutter decide over time','Do not ask Sutter to exit Clarium as a condition of founding membership — this will kill the relationship']},
+    {hd:'The Clarium conflict management',cls:'c-amber',items:['Frame Atlas as additive to existing data investments, not competitive displacement','The structural difference (member-owned vs. investor-owned) is the argument — not product comparison','Over time Sutter will consolidate toward the model that gives them better economics and governance']},
+  ]},
+  bjc:{cat:'Founding member: BJC Healthcare',secs:[
+    {hd:'Status and profile',cls:'c-green',items:['Confirmed founding member — profile: Changemaker','Already organized around fixing complex contract pricing problems','Particularly motivated by dynamic contract price management: volume-tiered prices that update too slowly','BJC is the prototype for the Changemaker member profile — joins to solve a specific operational problem']},
+    {hd:'Why BJC matters strategically',cls:'c-amber',items:['The Changemakers cohort is the wedge for the dynamic contract price management use case','BJC\'s active contract pricing problem gives Atlas a concrete first use case with real data','Their participation validates that Atlas solves operational problems, not just governance ones','Other Changemaker-profile systems (Cleveland Clinic) will be more attracted once BJC is public']},
+  ]},
+  cleveland:{cat:'Tentative member: Cleveland Clinic',secs:[
+    {hd:'Status and profile',cls:'c-amber',items:['Tentative — active Clarium collaborator, vendor conflict to navigate','Profile: Changemaker — worth pursuing despite the Clarium relationship','Cleveland Clinic\'s participation would be a major credibility signal for the founding cohort','The Clarium relationship is a conflict but not an insurmountable barrier if the structural argument is compelling']},
+    {hd:'Outreach approach',cls:'c-blue',items:['Lead with structural governance argument — not product comparison','Do not name Clarium negatively — acknowledge the relationship, explain the structural difference','Ask: "What would need to be true for this to be worth evaluating alongside your Clarium relationship?"','Cleveland Clinic\'s supply chain team is sophisticated — they understand structural vs. policy governance']},
+  ]},
+  stanford:{cat:'Tentative member: Stanford Health Care',secs:[
+    {hd:'Status and profile',cls:'c-amber',items:['Tentative — active Clarium collaborator, vendor conflict to navigate','Academic medical center with strong supply chain analytics capability','Profile: mix of Sovereignty seeker and Changemaker — sophisticated on data governance','The Clarium relationship is genuine — but Stanford\'s sophistication means they understand structural governance']},
+    {hd:'Outreach approach',cls:'c-blue',items:['Lead with structural governance argument — Stanford will engage intellectually with the SWIFT analogy','Acknowledge the Clarium relationship directly — do not ignore it','Frame Atlas as the structural alternative, not a Clarium replacement','Ask: "Given your existing data investments, what would the Atlas governance structure need to offer?"']},
+  ]},
+  mayo:{cat:'Tentative member: Mayo Clinic',secs:[
+    {hd:'Status and profile',cls:'c-amber',items:['Tentative — active Surgence collaborator, vendor conflict to navigate','The Surgence structural conflict is the most acute: Surgence is owned by Concordance (a distributor)','Mayo sharing procurement and utilization data with Surgence gives Concordance real-time visibility into Mayo\'s demand','Profile: Sovereignty seeker — once they understand the Surgence conflict, the Atlas argument is strong']},
+    {hd:'The Surgence conflict as a recruiting tool',cls:'c-green',items:['Frame: "Surgence claims governance through policy. Your distributor owns the platform. Consider the incentive structure."','Do not be aggressive — let the structural conflict speak for itself','If Mayo\'s supply chain team has already noticed the conflict, Atlas is a natural alternative','This is Atlas\'s single strongest recruiting argument for sovereignty-seeker profiles']},
+  ]},
+  intermtn:{cat:'Outstanding: Intermountain Health',secs:[
+    {hd:'Status',cls:'c-amber',items:['Outstanding — discovery meeting pending','Large integrated health system in Utah and Idaho — approximately 33 hospitals','Known for supply chain innovation and value-based care leadership','High-value target: confirms western U.S. presence and scale in the founding cohort']},
+    {hd:'Outreach approach',cls:'c-blue',items:['Lead with sovereignty framing — Intermountain has strong governance culture','Reference Trinity and Ed Hisscock\'s participation — peer CSCO validation is the strongest signal','Complete discovery meeting before May 4 founding Zoom if possible']},
+  ]},
+  uchealth:{cat:'Outstanding: UCHealth',secs:[
+    {hd:'Status',cls:'c-amber',items:['Outstanding — discovery meeting pending','Colorado-based integrated health system — approximately 12 hospitals','Academic medical center affiliation (University of Colorado) adds research and innovation credibility','High-value target for western U.S. presence alongside Intermountain']},
+  ]},
+  upmc:{cat:'Outstanding: UPMC',secs:[
+    {hd:'Status',cls:'c-amber',items:['Outstanding — discovery meeting pending','One of the largest health systems in the U.S. — approximately 40 hospitals in Pennsylvania','UPMC Enterprises is their venture/innovation arm — sophisticated data governance awareness','If confirmed: UPMC\'s participation would be the highest-credibility signal available outside Trinity']},
+    {hd:'Strategic value',cls:'c-green',items:['UPMC\'s scale and sophistication would accelerate supplier data product viability significantly','Their innovation culture means they understand the structural data governance argument','UPMC Enterprises as a potential Engine Room investor — worth exploring in discovery meeting','Priority: complete discovery meeting before May 4 founding Zoom']},
+  ]},
+  r_member:{cat:'Revenue stream 1: member participation fees',secs:[
+    {hd:'What it is',cls:'c-blue',items:['Founding members pay an annual fee to participate in Atlas','Funds early operations before supplier data products generate meaningful revenue','Likely modest — structured by system size (beds, revenue, or supply spend)','Primary function: commitment device and operational bridge, not primary revenue stream']},
+    {hd:'Design considerations',cls:'c-amber',items:['Fee must be low enough that a CSCO can authorize without board approval — critical for founding speed','Should include sunset provision or fee reduction as supplier revenue grows','Likely range: $25K–$150K annually depending on system size','Signals skin in the game without creating a barrier to the founding cohort']},
+  ]},
+  r_supplier:{cat:'Revenue stream 2: supplier data products',secs:[
+    {hd:'What it is',cls:'c-blue',items:['Aggregated, anonymized supply chain data sold to suppliers, distributors, and commercial counterparties','Market share, pricing trends, utilization benchmarks, demand forecasting — sold on subscription','Member-governed and permissioned: members approve what data leaves and under what conditions','Revenue flows back to contributing member organizations — the economic upside model']},
+    {hd:'Why this is the primary long-term revenue engine',cls:'c-green',items:['Highest potential revenue — suppliers currently pay hundreds of millions for this intelligence','Members go from giving data away for free to receiving a share of the revenue it generates','Network effects compound: more members = more valuable data = higher supplier willingness to pay','This stream allows member participation fees to stay low over time']},
+    {hd:'Key governance requirement',cls:'c-amber',items:['Members must approve each supplier data product before it goes to market — governance must be real, not advisory','Any perception that Atlas sells member data without adequate control destroys the founding thesis','The Engine Room operationalizes, Atlas governance approves — separation is the structural protection']},
+  ]},
+  r_toll:{cat:'Revenue stream 3: vendor toll / revenue share',secs:[
+    {hd:'What it is',cls:'c-blue',items:['Health systems currently send item master and PO history to multiple vendor software companies for free','Atlas inserts itself as the data governance layer, collecting a share of contract value from vendors who want network data access','A meaningful portion is distributed back to member organizations','Members go from giving data away to getting paid for it — structural inversion of current model']},
+    {hd:'Why this is the most differentiated model',cls:'c-green',items:['No comparable model exists at scale in healthcare supply chain — first mover advantage','The Plaid analogy: Plaid inserts between banks and fintechs, earns on every API call','If validated: most powerful founding member recruiting argument available','"You will be paid for data you currently give away for free" is a compelling and true value proposition']},
+    {hd:'The two unresolved questions — must answer before presenting to founding members',cls:'c-red',items:['Legal: does the toll model survive a Stark and anti-kickback scrub? Needs dedicated legal review','Commercial: will vendors pay or walk away from data sharing? This is the single biggest unknown in the model','Both must be answered before the toll model is presented as a primary revenue stream','If validated: this is the most powerful commercialization path in the Atlas portfolio']},
+  ]},
+  r_plaid:{cat:'Revenue stream 4: Plaid-style data layer',secs:[
+    {hd:'What it is',cls:'c-blue',items:['The Engine Room as the single pipe between member systems and downstream vendors','Health systems connect once to Atlas; vendors consume through standardized Atlas APIs','Reduces integration burden on member IT teams: stop rebuilding the same vendor interfaces','Consolidates governance: all data flows through a governed, auditable layer']},
+    {hd:'Timeline and barriers',cls:'c-amber',items:['Year 2 to Year 3 outcome — not a Year 1 ask for founding members','Barrier: existing vendor data exclusivity and termination notice provisions in current contracts','Members may be contractually locked into existing data feeds for 12–24 months','Near-term: operate Atlas as parallel/additive data layer alongside existing vendor relationships']},
+    {hd:'Long-term strategic value',cls:'c-green',items:['If achieved: Atlas becomes the irreplaceable infrastructure layer for health system supply chain data','Every vendor who wants member data must go through Atlas — toll road model at full realization','This is the moat that makes Atlas a durable long-term business rather than just a data cooperative']},
+  ]},
+  r_agent:{cat:'Revenue stream 5: agentic products',secs:[
+    {hd:'The agentic strategy',cls:'c-blue',items:['Most supply chain platforms surface insights and stop there — Atlas is built to take action','Six agentic domains operating continuously across the member data network','Agents get smarter as the network grows — network effect compounds the value','Atlas does not tell you what is happening. It does something about it.']},
+    {hd:'Disruption response agent',cls:'c-green',items:['Detects supply disruptions and backorders across the network in real time','Surfaces which member systems have available stock','Identifies clinically validated substitutes that worked at peer systems','Converts crisis response into coordinated network action']},
+    {hd:'Revenue recovery agent',cls:'c-green',items:['Monitors warranty windows on devices, implants, and capital equipment','Identifies claim-eligible events, generates documentation, submits and tracks claims','Captures warranty reimbursements that currently go unclaimed','Same pattern applies to rebate accrual and contract leakage']},
+    {hd:'Benchmarking-to-action agent',cls:'c-green',items:['Converts benchmarking outputs into a specific next best action','When a system is overpaying vs. network: identifies contract lever, quantifies recovery, initiates workflow','Closes the gap between insight and execution — analytics tell you what\'s wrong, agent tells you what to do','This is the agent that gives CFOs a reason to write the check']},
+  ]},
+  uc_t1:{cat:'Use case tier 1: member value wedges (10–12/12)',secs:[
+    {hd:'What tier 1 is',cls:'c-blue',items:['Highest CFO resonance, quantifiable ROI, and network effects requiring member participation to unlock','Scored 10–12 out of 12 on: CFO resonance + data availability + build effort + ROI potential','These are also where the agentic layer converts benchmarking into next best action']},
+    {hd:'Lead use cases for the founding meeting',cls:'c-green',items:['Share critical items lists (11/12): shared shortage intelligence — value grows with every member added','Dynamic contract price management (10/12): volume-tiered pricing lag — the Changemakers wedge','FDA recall and safety alert management (10/12): regulatory obligation, patient safety, UDI matching','Supply disruption early warning (10/12): backorder signals across the network in real time']},
+    {hd:'Other tier 1 highlights',cls:'c-teal',items:['Contract price disparity within system (10/12): CFO-level pain, quantifiable, no cross-system legal exposure','Rebate and incentive tracking (10/12): agent auto-submits claims against warranty and rebate windows','Contract leakage detection (10/12): are members actually getting their contracted price at line-item level?','Capital equipment utilization benchmarking (10/12): flag redeployment before a system buys new equipment']},
+    {hd:'Sequencing principle for the founding meeting',cls:'c-amber',items:['Right question: which use case gets 3–5 systems sharing data within 60 days?','Lead candidates: share critical items lists, dynamic contract price management, FDA recall management','Not: which use case is most valuable long-term — that conversation comes after traction is established']},
+  ]},
+  uc_t2:{cat:'Use case tier 2: supplier data products (9/12)',secs:[
+    {hd:'What tier 2 is',cls:'c-blue',items:['The mechanism by which Atlas generates revenue that reduces member fees and creates shared upside','Member-governed and permissioned — suppliers pay, Atlas distributes revenue back to members','CFO resonance scored from member perspective; ROI reflects supplier willingness to pay']},
+    {hd:'Tier 2 use cases',cls:'c-green',items:['Market share and utilization signals (9/12): member-governed, permissioned — suppliers pay for penetration data','Demand forecasting signals (9/12): forward-looking demand data suppliers currently cannot access','Rep enablement data (8/12): territory performance, win/loss signals, contract compliance visibility','Supplier support cost reduction (8/12): order accuracy, backorder communication, issue resolution data']},
+    {hd:'Revenue model',cls:'c-amber',items:['Subscription model: suppliers pay annual fee for access to Atlas data products','Volume-tiered: more members = more signal = higher price','Revenue share: Atlas distributes a meaningful portion back to contributing member systems','This stream makes the network self-sustaining — member fees drop as supplier revenue grows']},
+  ]},
+  uc_t3:{cat:'Use case tier 3: expansion wedges (8–9/12)',secs:[
+    {hd:'What tier 3 is',cls:'c-blue',items:['Require cleaner data and established trust between members — build after initial network traction','Score: 8–9 out of 12 — high value but not ready to lead with in the founding conversation']},
+    {hd:'Key tier 3 use cases',cls:'c-green',items:['Cross-network price benchmarking (9/12): anonymized and indexed — requires legal structure first','Benchmark pricing on physician preference items (9/12): high-cost, high-variation — direct CFO and CMO relevance','Warranty recovery (9/12): device, implant, capital equipment — agent identifies, files, and tracks claims','Contract terms monitoring (9/12): expiration, compliance, and renewal triggers across the portfolio','GPO participation optimization (9/12): direct cost impact, direct CFO conversation']},
+  ]},
+  uc_t4:{cat:'Use case tier 4: infrastructure and later-stage',secs:[
+    {hd:'What tier 4 is',cls:'c-blue',items:['Critical plumbing, narrow cohort use cases, or longer-horizon plays','Below 8/12 — not for the founding conversation but essential for long-term network value','These are the moat, not the pitch']},
+    {hd:'Key tier 4 use cases',cls:'c-teal',items:['Item master standardization (8/12): the infrastructure moat that all other agents depend on','Post-market surveillance (5/12): clinical outcomes tied to specific devices — high governance complexity','Patient outcomes data (5/12): later-stage, requires separate governance framework','Crisis and disaster planning (7/12): shared response playbooks — important but not an early revenue driver']},
+  ]},
+  clarium:{cat:'Competitor: Clarium',secs:[
+    {hd:'What Clarium is',cls:'c-red',items:['VC-backed startup crowdsourcing data from providers, suppliers, and vendors across hospital supply chain','Focused on disruption management and substitute approvals','~$43M raised. Collaborators include Yale New Haven, Stanford, Geisinger, Sutter, Cleveland Clinic','Network value accrues to Clarium\'s investors — not to the systems contributing the data']},
+    {hd:'The Atlas structural argument vs. Clarium',cls:'c-green',items:['Clarium asks health systems to feed a vendor\'s network. Atlas asks them to own the network.','This is a structural difference, not a marketing difference — governance and economics are fundamentally different','Allow coexistence in the founding period; prove Atlas value; let members make their own consolidation decisions']},
+    {hd:'How to position in the room',cls:'c-amber',items:['Do not attack Clarium directly — let the governance structure speak for itself','Preferred framing: "Both models aggregate supply chain data. The question is who captures the value."','For systems with Clarium relationships: "We\'re not asking you to exit Clarium. We\'re asking you to evaluate the ownership model."']},
+  ]},
+  surgence:{cat:'Competitor: Surgence / Palantir',secs:[
+    {hd:'What Surgence is',cls:'c-red',items:['Built by Concordance Innovations, wholly owned subsidiary of Concordance Healthcare Solutions (major distributor)','Built in partnership with Palantir. Collaborators include Mayo, Rush, Adventist','Recently launched workflow apps at AHRMM 2025','The structural conflict: health systems sharing procurement data with a distributor-owned platform']},
+    {hd:'The structural conflict is Atlas\'s best argument',cls:'c-green',items:['Surgence claims governance through policy — but the governance is a policy position, not structural protection','Concordance (the distributor) gains real-time visibility into provider demand and ordering patterns','For Mayo: "Your distributor owns the platform where you share your purchasing data"','Let the incentive structure argument do the work — do not overstate or attack Palantir specifically']},
+  ]},
+  gpo:{cat:'Competitor analog: GPOs / Vizient',secs:[
+    {hd:'Why GPOs are an analogue to avoid',cls:'c-amber',items:['Founding members do not have positive associations with their GPOs — comparison undercuts the wedge','GPOs aggregate purchasing power but do not return data value to members the way Atlas proposes','Do not use Vizient, GPOs, or GHX in founding conversations as Atlas analogues']},
+    {hd:'The right analogues to use instead',cls:'c-green',items:['SWIFT: competing banks built a member-owned cooperative, contracted a separate technology operation — the cleanest analogue','CommonWell Health Alliance: health IT companies set aside competition to address shared interoperability — member-governed, separately operated','These analogues frame Atlas as infrastructure, not procurement — fundamentally different positioning']},
+  ]},
+  ghx:{cat:'Adjacent player: GHX / distributors',secs:[
+    {hd:'GHX\'s role in the landscape',cls:'c-amber',items:['GHX processes order management, invoicing, and transaction data for health systems','Not a direct Atlas competitor but an adjacent incumbent with deep health system relationships','Owned by a consortium including major distributors and GPOs','The Plaid-style data layer is partially analogous to what GHX does for transactions — but Atlas is member-governed']},
+    {hd:'Distributor conflict context',cls:'c-red',items:['Major distributors have deep visibility into health system purchasing through transaction data','The Surgence/Concordance model is the most explicit version of this conflict','Atlas\'s structural argument applies to any distributor-adjacent data platform','The toll model (revenue stream 3) is particularly relevant: if Atlas is the data governance layer, distributors pay to access it']},
+  ]},
+  ed:{cat:'Key person: Ed Hisscock',secs:[
+    {hd:'Who he is',cls:'c-blue',items:['Former Chief Supply Chain Officer at Trinity Health — one of the largest Catholic health systems in the U.S.','Co-leading Atlas alongside Hashed Health — convenes the founding meeting as a peer','Carries the highest available credibility with the target audience: health system supply chain executives','His framing in the room is critical — sets the tone of peer inquiry, not vendor sales pitch']},
+    {hd:'How to use his credibility',cls:'c-green',items:['Ed opens the founding meeting, not Hashed — this is intentional and important','His CSCO background means he has personally experienced the data governance problem Atlas is solving','He can speak to the Trinity decision to join as a founding member — most powerful reference possible','His peer network may unlock Cleveland Clinic, Mayo, and other tentatives through CSCO-to-CSCO outreach']},
+  ]},
+};
+
+const SHOW={all:['member','revenue','value','comp','struct'],structure:['struct','member'],members:['member'],revenue:['revenue','value'],usecases:['value'],comp:['comp','member'],risks:['comp','struct']};
+let view='all', sel=null, hov=null, W, H, dpr, canvas, ctx;
+
+const ROW_LABELS=[
+  {y:28, t:'ATLAS NETWORK — TWO-ENTITY STRUCTURE'},
+  {y:152,t:'CONFIRMED FOUNDING MEMBERS'},
+  {y:249,t:'TENTATIVE + OUTSTANDING MEMBERS'},
+  {y:362,t:'COMMERCIALIZATION — REVENUE STREAMS'},
+  {y:467,t:'USE CASE TIERS'},
+  {y:567,t:'COMPETITIVE LANDSCAPE + KEY PEOPLE'},
+];
+
+function sv(v,btn){view=v;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');draw();}
+
+function setup(){
+  canvas=document.getElementById('c');
+  W=canvas.parentElement.offsetWidth; H=640;
+  dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr); draw();
+}
+
+function px(n){return n.x/680*W;}
+function py(n){return n.y;}
+function nr(n){return(n.r||20)*(sel===n.id?1.18:1);}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const dark=matchMedia('(prefers-color-scheme:dark)').matches;
+  const types=SHOW[view]||SHOW.all;
+
+  ROW_LABELS.forEach(r=>{
+    ctx.font=`600 8px ${getComputedStyle(document.body).fontFamily}`;
+    ctx.fillStyle=dark?'rgba(180,178,168,0.38)':'rgba(60,58,52,0.38)';
+    ctx.textAlign='left'; ctx.fillText(r.t,6,r.y);
+    ctx.beginPath(); ctx.moveTo(6,r.y+5); ctx.lineTo(W-6,r.y+5);
+    ctx.strokeStyle=dark?'rgba(180,178,168,0.1)':'rgba(60,58,52,0.1)';
+    ctx.lineWidth=0.5; ctx.stroke();
+  });
+
+  EDGES.forEach(e=>{
+    if(!types.includes(e.type))return;
+    const na=NODES.find(n=>n.id===e.a), nb=NODES.find(n=>n.id===e.b);
+    if(!na||!nb)return;
+    const ax=px(na),ay=py(na),bx=px(nb),by=py(nb);
+    const isActive=sel&&(sel===e.a||sel===e.b);
+    const col=ECOLS[e.type], bw=EW[e.type]||1.5;
+    ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by);
+    ctx.strokeStyle=col+(isActive?'ff':'44');
+    ctx.lineWidth=isActive?bw+1:bw;
+    if(e.type==='comp'){ctx.setLineDash([4,3]);}else{ctx.setLineDash([]);}
+    ctx.stroke(); ctx.setLineDash([]);
+    if(isActive){
+      const ang=Math.atan2(by-ay,bx-ax);
+      const tx=bx-Math.cos(ang)*(nr(nb)+2), ty=by-Math.sin(ang)*(nr(nb)+2);
+      ctx.beginPath();
+      ctx.moveTo(tx,ty); ctx.lineTo(tx-8*Math.cos(ang-.38),ty-8*Math.sin(ang-.38));
+      ctx.moveTo(tx,ty); ctx.lineTo(tx-8*Math.cos(ang+.38),ty-8*Math.sin(ang+.38));
+      ctx.strokeStyle=col+'ff'; ctx.lineWidth=1.5; ctx.stroke();
+      if(e.label){
+        const mx=(ax+bx)/2, my=(ay+by)/2;
+        ctx.font=`500 9px ${getComputedStyle(document.body).fontFamily}`;
+        const bww=ctx.measureText(e.label).width+10;
+        ctx.fillStyle=dark?'rgba(20,20,18,0.88)':'rgba(255,255,255,0.92)';
+        ctx.fillRect(mx-bww/2,my-8,bww,13);
+        ctx.fillStyle=col; ctx.textAlign='center';
+        ctx.fillText(e.label,mx,my+2);
+      }
+    }
+  });
+
+  NODES.forEach(n=>{
+    const x=px(n),y=py(n),r=nr(n);
+    const col=CATS[n.cat];
+    const isSel=sel===n.id, isHov=hov===n.id;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=col+(isSel?'ff':dark?'bb':'dd');
+    ctx.fill();
+    if(isSel||isHov){ctx.strokeStyle=col; ctx.lineWidth=2.5; ctx.stroke();}
+    ctx.font=`${isSel?600:400} ${r>24?11:10}px ${getComputedStyle(document.body).fontFamily}`;
+    ctx.fillStyle='rgba(255,255,255,0.97)'; ctx.textAlign='center';
+    const lines=n.label.split('\n'), lh=11, sy=y-(lines.length-1)*lh/2;
+    lines.forEach((l,i)=>ctx.fillText(l,x,sy+i*lh+3));
+  });
+}
+
+function getNode(mx,my){
+  for(let i=NODES.length-1;i>=0;i--){
+    const n=NODES[i], x=px(n), y=py(n), r=nr(n)+6;
+    if((mx-x)**2+(my-y)**2<=r*r) return n.id;
+  }
+  return null;
+}
+
+function showPanel(id){
+  const d=DATA[id]; if(!d) return;
+  document.getElementById('def-msg').style.display='none';
+  document.getElementById('detail').style.display='block';
+  const nm=NODES.find(n=>n.id===id)?.label.replace('\n',' ')||id;
+  document.getElementById('pn').textContent=nm;
+  const col=CATS[NODES.find(n=>n.id===id)?.cat]||'#888';
+  document.getElementById('pc').textContent=d.cat;
+  document.getElementById('pc').style.color=col;
+  let html='';
+  d.secs.forEach(s=>{
+    html+=`<div class="p-hd">${s.hd}</div>`;
+    s.items.forEach(it=>{ html+=`<div class="p-item ${s.cls}">${it}</div>`; });
+  });
+  document.getElementById('pbody').innerHTML=html;
+  document.getElementById('xbtn').onclick=()=>{
+    prompt('Copy this to ask Claude:','Tell me more about '+nm+' in the context of Atlas supply chain network');
+  };
+}
+
+window.addEventListener('load',()=>{
+  setup();
+  canvas.addEventListener('click',e=>{
+    const r=canvas.getBoundingClientRect();
+    const id=getNode(e.clientX-r.left,e.clientY-r.top);
+    if(id&&DATA[id]){sel=id; showPanel(id);}
+    else{sel=null; document.getElementById('def-msg').style.display='block'; document.getElementById('detail').style.display='none';}
+    draw();
+  });
+  canvas.addEventListener('mousemove',e=>{
+    const r=canvas.getBoundingClientRect();
+    hov=getNode(e.clientX-r.left,e.clientY-r.top);
+    canvas.style.cursor=hov?'pointer':'default'; draw();
+  });
+  canvas.addEventListener('mouseleave',()=>{hov=null; draw();});
+});
+window.addEventListener('resize',()=>setTimeout(setup,60));
+</script>
+</body>
+</html>
