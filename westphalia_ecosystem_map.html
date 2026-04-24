@@ -1,0 +1,393 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+body{font-family:var(--font-sans,sans-serif)}
+#wrap{width:100%;padding:10px 0 0}
+.hdr{background:#0C447C;border-radius:10px;padding:14px 18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.ht{font-size:16px;font-weight:500;color:#fff}
+.hs{font-size:11px;color:#B5D4F4;margin-top:2px}
+.badge{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:500;background:#085041;color:#fff}
+#tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.tab{padding:4px 12px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);cursor:pointer;font-size:11px;transition:all .15s}
+.tab.on{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-primary);font-weight:500}
+#layout{display:grid;grid-template-columns:1fr 295px;gap:10px;align-items:start}
+canvas{display:block;width:100%;border-radius:8px;border:0.5px solid var(--color-border-tertiary);cursor:default}
+#panel{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px;font-size:12px;min-height:400px}
+.p-name{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:2px}
+.p-cat{font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px}
+.p-hd{font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);margin:9px 0 4px}
+.p-item{font-size:11px;line-height:1.5;margin-bottom:3px;padding-left:10px;position:relative;color:var(--color-text-secondary)}
+.p-item:before{content:"";position:absolute;left:0;top:6px;width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.65}
+.c-blue{color:#0C447C}.c-blue:before{background:#0C447C}
+.c-teal{color:#085041}.c-teal:before{background:#085041}
+.c-amber{color:#854F0B}.c-amber:before{background:#854F0B}
+.c-red{color:#A32D2D}.c-red:before{background:#A32D2D}
+.c-purple{color:#3C3489}.c-purple:before{background:#3C3489}
+.c-green{color:#3B6D11}.c-green:before{background:#3B6D11}
+.def{color:var(--color-text-tertiary);font-size:11px;line-height:1.6;padding-top:6px}
+#leg{display:flex;flex-direction:column;margin-top:10px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:10px 12px}
+.leg-t{font-size:9px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:5px}
+.leg-r{display:flex;flex-wrap:wrap;gap:5px 14px;margin-bottom:8px}
+.li{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--color-text-secondary)}
+.ld{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.le{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)}
+.ll{height:3px;width:22px;border-radius:1px;flex-shrink:0}
+@media(max-width:580px){#layout{grid-template-columns:1fr}}
+</style>
+
+<h2 class="sr-only">Westphalia ecosystem map — portable member-owned health record platform, showing GTM paths, distribution partners, tech stack, revenue model, and competitive landscape</h2>
+
+<div id="wrap">
+<div class="hdr">
+  <div>
+    <div class="ht">Westphalia — Market Ecosystem Map</div>
+    <div class="hs">Portable member-owned health record · B2B2C · Hashed Health · Discovery phase · Apr 2026</div>
+  </div>
+  <div class="badge">Discovery / GTM validation</div>
+</div>
+
+<div id="tabs">
+  <button class="tab on" onclick="sv('all',this)">Full ecosystem</button>
+  <button class="tab" onclick="sv('gtm1',this)">GTM path 1: People Care</button>
+  <button class="tab" onclick="sv('gtm2',this)">GTM path 2: HSA / fintech</button>
+  <button class="tab" onclick="sv('tech',this)">Tech stack</button>
+  <button class="tab" onclick="sv('rev',this)">Revenue model</button>
+  <button class="tab" onclick="sv('risk',this)">Risks / open Qs</button>
+</div>
+
+<div id="layout">
+  <div><canvas id="c" height="640"></canvas></div>
+  <div id="panel">
+    <div id="def-msg" class="def">Click any node to explore Westphalia's two GTM paths, distribution partners, technology architecture, revenue model, competitive landscape, and open strategic questions.</div>
+    <div id="detail" style="display:none">
+      <div class="p-name" id="pn"></div>
+      <div class="p-cat" id="pc"></div>
+      <div id="pbody"></div>
+      <button style="margin-top:10px;width:100%;font-size:11px" onclick="sendPrompt('Tell me more about '+document.getElementById('pn').textContent+' in the context of Westphalia')">Explore deeper ↗</button>
+    </div>
+  </div>
+</div>
+
+<div id="leg">
+  <div class="leg-t">Node type</div>
+  <div class="leg-r">
+    <div class="li"><div class="ld" style="background:#0C447C"></div>Westphalia / core</div>
+    <div class="li"><div class="ld" style="background:#085041"></div>GTM path 1 (People Care)</div>
+    <div class="li"><div class="ld" style="background:#854F0B"></div>GTM path 2 (HSA/fintech)</div>
+    <div class="li"><div class="ld" style="background:#3C3489"></div>Distribution / partner</div>
+    <div class="li"><div class="ld" style="background:#3B6D11"></div>Tech / infrastructure</div>
+    <div class="li"><div class="ld" style="background:#A32D2D"></div>Risk / open question</div>
+    <div class="li"><div class="ld" style="background:#888780"></div>End user</div>
+  </div>
+  <div class="leg-t">Connection</div>
+  <div class="leg-r" style="margin-bottom:0">
+    <div class="le"><div class="ll" style="background:#085041"></div>GTM path 1</div>
+    <div class="le"><div class="ll" style="background:#854F0B"></div>GTM path 2</div>
+    <div class="le"><div class="ll" style="background:#0C447C"></div>Data / integration</div>
+    <div class="le"><div class="ll" style="background:repeating-linear-gradient(90deg,#A32D2D 0,#A32D2D 4px,transparent 4px,transparent 7px)"></div>Risk / tension</div>
+  </div>
+</div>
+</div>
+
+<script>
+const CATS={core:'#0C447C',gtm1:'#085041',gtm2:'#854F0B',partner:'#3C3489',tech:'#3B6D11',risk:'#A32D2D',user:'#888780'};
+const ECOLS={gtm1:'#0F6E56',gtm2:'#BA7517',data:'#185FA5',risk:'#A32D2D'};
+const EW={gtm1:2.2,gtm2:2.2,data:1.6,risk:1.4};
+
+const NODES=[
+  {id:'west',    label:'Westphalia',           cat:'core',    x:340,y:55, r:32},
+  {id:'hashed',  label:'Hashed\nHealth',        cat:'core',    x:160,y:55, r:22},
+  {id:'highlight',label:'Highlight\n(HowLite)', cat:'gtm2',    x:520,y:55, r:22},
+
+  {id:'peoplecare',label:'People Care',         cat:'gtm1',    x:120,y:175,r:24},
+  {id:'ichra',   label:'ICHRA\nVendors',         cat:'gtm1',    x:240,y:175,r:21},
+  {id:'tpa',     label:'TPAs /\nLevel-funded',   cat:'gtm1',    x:355,y:175,r:20},
+  {id:'employer',label:'Employer\nHRIS',         cat:'partner', x:460,y:175,r:18},
+
+  {id:'hsa',     label:'HSA Banks',              cat:'gtm2',    x:560,y:175,r:22},
+  {id:'card',    label:'Highlight\nCredit Card',  cat:'gtm2',    x:620,y:270,r:20},
+
+  {id:'member',  label:'Member\n(end user)',      cat:'user',    x:340,y:275,r:26},
+  {id:'provider',label:'Provider /\nEHR',         cat:'tech',    x:120,y:290,r:20},
+  {id:'payer',   label:'Payer /\nClaims',         cat:'tech',    x:210,y:290,r:20},
+
+  {id:'epic',    label:'Epic\nMyChart',           cat:'tech',    x:80, y:400,r:18},
+  {id:'hedera',  label:'Hedera\nBlockchain',      cat:'tech',    x:180,y:400,r:18},
+  {id:'fire',    label:'FHIR\nConnectors',        cat:'tech',    x:275,y:400,r:18},
+  {id:'athena',  label:'Athena\n(170k MDs)',       cat:'tech',    x:375,y:400,r:18},
+  {id:'voiceai', label:'Voice AI',                cat:'tech',    x:470,y:400,r:18},
+  {id:'hlh',     label:'HLH\nPayments',           cat:'tech',    x:565,y:400,r:18},
+
+  {id:'r_portability',label:'Portability\ntension',   cat:'risk',x:120,y:520,r:20},
+  {id:'r_partner',    label:'Partner\nretention risk',cat:'risk',x:240,y:520,r:20},
+  {id:'r_validated',  label:'GTM not yet\nvalidated',  cat:'risk',x:360,y:520,r:20},
+  {id:'r_compete',    label:'Claro /\nHealthJoy',      cat:'risk',x:475,y:520,r:18},
+  {id:'r_data',       label:'Data access\nfragmented', cat:'risk',x:580,y:520,r:18},
+
+  {id:'rev_b2b', label:'B2B\nRevenue',            cat:'partner', x:180,y:620,r:20},
+  {id:'rev_share',label:'Data /\nrev share',      cat:'partner', x:320,y:620,r:20},
+  {id:'rev_free',label:'Freemium\n(consumer)',    cat:'partner', x:460,y:620,r:18},
+  {id:'rev_api', label:'API /\nplatform fees',    cat:'partner', x:580,y:620,r:18},
+];
+
+const EDGES=[
+  {a:'hashed',  b:'west',          type:'data',  label:'incubator'},
+  {a:'highlight',b:'west',         type:'gtm2',  label:'co-build 5%'},
+  {a:'west',    b:'peoplecare',    type:'gtm1',  label:'Path 1 anchor'},
+  {a:'peoplecare',b:'ichra',       type:'gtm1',  label:'existing customers'},
+  {a:'peoplecare',b:'tpa',         type:'gtm1',  label:'expand to'},
+  {a:'west',    b:'employer',      type:'gtm1',  label:'via HRIS'},
+  {a:'west',    b:'hsa',           type:'gtm2',  label:'Path 2 anchor'},
+  {a:'hsa',     b:'card',          type:'gtm2',  label:'card issuance'},
+  {a:'card',    b:'member',        type:'gtm2',  label:'auto-enroll'},
+  {a:'west',    b:'member',        type:'data',  label:'PHR / data'},
+  {a:'member',  b:'provider',      type:'data',  label:'clinical data'},
+  {a:'member',  b:'payer',         type:'data',  label:'claims data'},
+  {a:'provider',b:'epic',          type:'data',  label:'EHR source'},
+  {a:'payer',   b:'fire',          type:'data',  label:'FHIR feed'},
+  {a:'west',    b:'hedera',        type:'data',  label:'immutability'},
+  {a:'west',    b:'athena',        type:'data',  label:'rev cycle'},
+  {a:'west',    b:'voiceai',       type:'data',  label:'appointment AI'},
+  {a:'hsa',     b:'hlh',           type:'data',  label:'payment processing'},
+  {a:'west',    b:'r_portability', type:'risk',  label:'tension'},
+  {a:'west',    b:'r_validated',   type:'risk',  label:'still de-risking'},
+  {a:'hsa',     b:'r_partner',     type:'risk',  label:'retention concern'},
+  {a:'west',    b:'r_compete',     type:'risk',  label:'market overlap'},
+  {a:'west',    b:'r_data',        type:'risk',  label:'fragmentation'},
+  {a:'west',    b:'rev_b2b',       type:'data',  label:'primary model'},
+  {a:'west',    b:'rev_share',     type:'data',  label:'data upside'},
+  {a:'west',    b:'rev_free',      type:'data',  label:'consumer fallback'},
+  {a:'west',    b:'rev_api',       type:'data',  label:'platform play'},
+];
+
+const DATA={
+  west:{cat:'Westphalia — core platform',secs:[
+    {hd:'What it is',cls:'c-blue',items:['Portable member-owned personal health record (PHR) that travels with the member across health plans, HSA banks, and employers','B2B2C model — distributed through institutional partners, not sold direct to consumers','Core value: the member owns their data. It does not disappear when they change plans or employers.','Built as a modular "veneer" — Westphalia is the member-facing layer with specialized apps (People Care AI, HLH payments, Hedera) underneath']},
+    {hd:'Current status',cls:'c-amber',items:['Discovery phase — GTM is being validated, not executed yet','Two pilot customers via People Care integration (ICHRA vendors)','Team identified: Paolo as CTO, Prashant as CCO/CMO, co-build with Highlight/HowLite (5% cross-ownership)','Next phase: digest all materials, organize strategy, validate GTM before signing partners at scale']},
+    {hd:'The two GTM paths',cls:'c-teal',items:['Path 1: Latch onto People Care\'s existing ICHRA customer base. Use agentic benefits tech to enhance the current offering. Expand to other ICHRA vendors and similar models.','Path 2: Partner with HSA banks and Highlight credit card. Every card issued automatically opts the member into clinical and claims data from merchants. Ideal distribution at scale.','Both paths run in parallel. People Care is the near-term anchor. HSA/fintech is the accelerant.']},
+  ]},
+  hashed:{cat:'Hashed Health — incubator',secs:[
+    {hd:'Role in Westphalia',cls:'c-blue',items:['Building and incubating Westphalia through Hashed Health portfolio infrastructure','5% cross-ownership arrangement with Highlight/HowLite for co-build on the fintech layer','John Ray and Peter are part of the combined team alongside Paolo, Prashant, and the People Care leads','Westphalia is one of multiple Hashed portfolio companies — Atlas and Peer Supply are distinct, do not conflate']},
+  ]},
+  highlight:{cat:'Highlight / HowLite — co-build fintech partner',secs:[
+    {hd:'What Highlight does',cls:'c-amber',items:['Fintech company operating in the HSA/FSA/credit card space','Provides the credit card and payment infrastructure for the Westphalia fintech distribution path','The co-build agreement gives Hashed 5% of Highlight and Highlight 5% of Hashed','Every Highlight card issued becomes a potential Westphalia member onboarding event — this is the distribution flywheel']},
+    {hd:'Why this is the most attractive distribution path',cls:'c-teal',items:['A card issuer that automatically opts every cardholder into clinical and claims data is a dramatically different distribution model than B2B enterprise sales','HSA banks are already holding medical financial data — the clinical record layer is a natural extension','Tim and Sandra own this GTM track — distinct from the People Care track (Prashant and Paolo)','Demo scheduled with Hedera/Hashgraph on April 28th — likely relevant to the transaction immutability layer']},
+  ]},
+  peoplecare:{cat:'GTM path 1 anchor: People Care',secs:[
+    {hd:'What People Care is',cls:'c-teal',items:['Agentic benefits technology company with existing customers in the ICHRA market','Two ICHRA vendor pilot customers already using People Care\'s platform','Provides real-time EOB analysis, dispute automation, and AI-powered benefits navigation','Westphalia latches onto what People Care is already doing and makes it more — adding the portable PHR and claims data layer on top of the existing agentic benefits workflow']},
+    {hd:'The GTM logic',cls:'c-blue',items:['People Care already has relationships with ICHRA vendors who have end members','Adding Westphalia\'s portable health record and Highlight credit card to the People Care offering makes the current product more attractive — a bolt-on, not a replacement','Then expand to other ICHRA vendors, level-funded health plans, and similar models that want chatbot + fintech capabilities','This is the near-term path — leverage existing distribution rather than building from scratch']},
+    {hd:'Team structure',cls:'c-purple',items:['Prashant (CCO/CMO) and Paolo (CTO) are the People Care track leads','The plan is to merge the People Care and Westphalia teams into one combined group','Paolo + Prashant join John Ray and Peter to create one unified team, then partner with Highlight for the credit card distribution layer']},
+  ]},
+  ichra:{cat:'Distribution: ICHRA vendors',secs:[
+    {hd:'What ICHRAs are',cls:'c-teal',items:['Individual Coverage Health Reimbursement Arrangements — employer-funded accounts that reimburse employees for individual health insurance premiums','Growing rapidly as employers move away from group health coverage toward defined contribution models','ICHRA vendors administer these accounts for employers — they sit between the employer and the individual member','People Care already has two ICHRA vendor pilot customers — this is Westphalia\'s initial beachhead distribution market']},
+    {hd:'Why they are a strong GTM wedge',cls:'c-blue',items:['ICHRA administrators already manage health financial data for their members','Adding a portable health record and agentic benefits layer creates a premium offering they can sell upmarket','Members already trust ICHRA vendors with sensitive health financial data — the consent barrier is lower','The ICHRA market is growing: ACA plan proliferation and employer cost pressures are driving adoption faster than anticipated']},
+  ]},
+  tpa:{cat:'Distribution: TPAs and level-funded plans',secs:[
+    {hd:'What TPAs are',cls:'c-teal',items:['Third-party administrators who manage health benefits for self-funded employers','Level-funded plans are a hybrid — employer pays a fixed monthly amount with potential refund if claims come in below target','Both TPA and level-funded employers are highly motivated to reduce claims costs and improve member health outcomes','People Care\'s existing ICHRA relationships are the stepping stone to this adjacent market']},
+    {hd:'Why they matter for Westphalia',cls:'c-blue',items:['TPAs and level-funded employers want better member engagement tools to reduce claims','Westphalia\'s PHR + agentic benefits layer + billing dispute automation directly reduces unnecessary claims','The chatbot-with-fintech-attached value proposition (real-time EOB analysis, dispute letters) resonates strongly with TPA cost containment goals','Each TPA covers thousands of members — a single TPA partnership is a meaningful distribution event']},
+  ]},
+  hsa:{cat:'GTM path 2 anchor: HSA banks',secs:[
+    {hd:'The HSA bank distribution model',cls:'c-amber',items:['HSA banks hold member health savings accounts and already process health-related financial transactions','Adding Westphalia\'s clinical data layer to the HSA bank offering creates a "health financial intelligence" product','The strategic move: every HSA bank card issued automatically opts the member into receiving clinical and claims data — this is the described "ideal" distribution model','Tim and Sandra own this GTM track alongside the Highlight partnership']},
+    {hd:'Why this is the scale path',cls:'c-teal',items:['HSA enrollment is growing: ~36M HSA accounts in the US with ~$116B in assets (Devenir 2024)','HSA banks already have AML/KYC compliance, payment infrastructure, and member trust around health finances','Adding a portable health record is a natural product extension — not a foreign concept to their membership','The distribution leverage: one HSA bank partnership = hundreds of thousands of potential Westphalia members without a single direct B2C marketing spend']},
+    {hd:'Partner retention tension',cls:'c-red',items:['Key open question: how does Westphalia maintain portability — the core value prop — while managing partner concerns about member lock-in?','HSA banks and ICHRA vendors benefit if members stay on their platform. Westphalia\'s portability promise directly conflicts with that interest.','This tension must be resolved in the partnership model before scaling distribution — it is flagged as a core open question in the materials']},
+  ]},
+  card:{cat:'Highlight credit card — distribution flywheel',secs:[
+    {hd:'The card as a distribution mechanism',cls:'c-amber',items:['Every Highlight card issued automatically opts the cardholder into clinical and claims data from merchant transactions','This is a fundamentally different GTM motion: distribution through payment behavior, not through employer or health plan enrollment','The member gets a health financial record built passively through their spending — no active data entry required','Described in the notes as "ideal — very attractive distribution model, faster"']},
+    {hd:'The Hedera connection',cls:'c-green',items:['Transaction immutability via Hedera blockchain provides an auditable, tamper-proof record of health-related financial transactions','Hedera/Hashgraph demo scheduled April 28th — likely scoping the transaction layer for the card product','HLH handles payment processing when the user clicks into transactions — distinct from Highlight\'s card issuance role']},
+  ]},
+  member:{cat:'End user: the member',secs:[
+    {hd:'Who the member is',cls:'c-blue',items:['Any individual with a health plan, HSA, or employer benefits — the universal healthcare consumer','Westphalia\'s core promise to the member: your health record travels with you, across every plan and employer change','The member is the beneficiary of the platform but is NOT the paying customer — employers, HSA banks, and ICHRA vendors pay','Consumer freemium exists as a fallback for members who switch providers and lose their institutional access']},
+    {hd:'How the member onboards',cls:'c-teal',items:['Blue Button data access (CMS claims data for Medicare/ACA members)','Apple Health-style workflows for connected device and EHR data','Seeded data from partner banks and ICHRA vendors — the preferred onboarding path','Epic MyChart integration for clinical records; Aetna and other payer claims feeds']},
+  ]},
+  epic:{cat:'Tech: Epic MyChart integration',secs:[
+    {hd:'Role in the tech stack',cls:'c-green',items:['Epic MyChart is the patient portal for the majority of large US health systems — 280M+ patient records','The People Care demo shows real-time EOB analysis using Epic MyChart + Aetna claims as data sources','FHIR-compatible data connections enable clinical record access without custom per-hospital integrations','Epic\'s patient data is the richest clinical data source available — diagnoses, medications, labs, imaging']},
+    {hd:'Strategic importance',cls:'c-blue',items:['An Epic integration is a trust signal for health system and payer partners — it means Westphalia operates within the established clinical data infrastructure','Also relevant: Athena Health covers 170K physicians and is a target for rev cycle connections — broader than Epic in the ambulatory space','The FHIR layer is the scalable path — one standard connection covers most EHR systems rather than bespoke integrations per vendor']},
+  ]},
+  hedera:{cat:'Tech: Hedera blockchain',secs:[
+    {hd:'What Hedera provides',cls:'c-green',items:['Transaction immutability — health-related financial transactions recorded on the Hedera hashgraph are tamper-proof and auditable','Hedera/Hashgraph demo scheduled April 28th','The blockchain layer is particularly relevant to the credit card + claims data product: it creates a verifiable record of when data was accessed and by whom','For members: a trust mechanism that their data has not been altered — relevant to billing dispute use cases']},
+  ]},
+  fire:{cat:'Tech: FHIR connectors',secs:[
+    {hd:'What FHIR is',cls:'c-green',items:['Fast Healthcare Interoperability Resources — the federal standard for health data exchange (mandated under the 21st Century Cures Act)','FHIR APIs allow Westphalia to pull clinical data from EHRs and payer claims systems without bespoke point-to-point integrations','The majority of major EHR and payer systems now have FHIR R4 APIs — this is the scalable data access path','FHIR-compatible data connections are mentioned in the Westphalia technical architecture discussion']},
+  ]},
+  athena:{cat:'Tech: Athena Health',secs:[
+    {hd:'Why Athena matters',cls:'c-green',items:['Athena Health is a major cloud-based EHR and practice management platform covering 170K physicians — noted as a target for revenue cycle connections','Unlike Epic which dominates hospital systems, Athena dominates the ambulatory and independent physician market','A single Athena integration gives Westphalia access to the physician practice data layer that is often missing from hospital-centric EHR integrations','Revenue cycle data from Athena enables the billing dispute and balance billing protection features that are core to Westphalia\'s member value proposition']},
+  ]},
+  voiceai:{cat:'Tech: Voice AI',secs:[
+    {hd:'Capabilities in the platform',cls:'c-green',items:['Voice AI capabilities for appointment booking and billing negotiations — mentioned in the technical architecture discussion','Appointment preparation checklists based on patient data — AI-powered ahead of clinical visits','Generic chat with full health context — the People Care agentic AI layer provides this today','Dispute process automation with letter generation — reduces member effort in billing disputes to near zero']},
+  ]},
+  hlh:{cat:'Tech: HLH payments',secs:[
+    {hd:'Role in the stack',cls:'c-green',items:['HLH handles payment processing when the user clicks into transactions within the Westphalia platform','Modular architecture: Westphalia is the member-facing veneer; HLH processes the actual payment transactions underneath','This separation keeps the regulated payment processing layer independent from the data and record layer','Relevant to the HSA/credit card GTM path: card-level merchant transactions route through HLH for processing and then surface in the Westphalia health financial record']},
+  ]},
+  employer:{cat:'Distribution: employer HRIS',secs:[
+    {hd:'The employer channel',cls:'c-purple',items:['Employer-sponsored access through HRIS platforms is the fourth GTM entry point listed in the materials','Employees who receive Westphalia access through their employer\'s HRIS (ADP, Workday, Rippling) are pre-authenticated and have known benefits context','The employer is a paying B2B customer in this model — Westphalia is a premium benefit the employer offers alongside health insurance','Life event management (new baby, college departure) is a strong employer-facing value proposition — these are moments when health record portability matters most']},
+  ]},
+  r_portability:{cat:'Risk: portability vs partner tension',secs:[
+    {hd:'The structural tension',cls:'c-red',items:['Westphalia\'s core member value proposition is portability — the record travels with the member regardless of plan or employer changes','HSA banks, ICHRA vendors, and employers benefit if members stay on their platforms — they have a financial interest in member retention','Westphalia\'s portability promise directly conflicts with every distribution partner\'s lock-in interest','This must be resolved in the partnership model before signing distribution partners at scale — flagged explicitly in the materials as an open question on "data portability messaging for partner retention"']},
+  ]},
+  r_partner:{cat:'Risk: partner retention design',secs:[
+    {hd:'The open question',cls:'c-red',items:['If a member leaves an HSA bank or ICHRA vendor, does the Westphalia record travel with them?','If yes: the distribution partner loses their data advantage when the member leaves — reducing their incentive to distribute Westphalia','If no: Westphalia\'s core value proposition (portability) is undermined','The resolution: likely a data licensing model where the partner retains access to aggregated anonymized data even after the member leaves, while the member retains their individual record','This is a partnership design and legal question that must be resolved before scaling']},
+  ]},
+  r_validated:{cat:'Risk: GTM not yet validated',secs:[
+    {hd:'Current phase is discovery',cls:'c-red',items:['John Phillips explicitly: this is a de-risking and validation phase, not a live execution project','Do not treat Westphalia as ready to sign partners at scale — the GTM is still being validated','The two pilot customers via People Care are discovery data, not proof of repeatable distribution','The immediate priority: digest all materials, map the two GTM paths, document the strategy, identify the key validation questions']},
+    {hd:'What needs to be validated before scaling',cls:'c-amber',items:['Path 1: will additional ICHRA vendors pay for the People Care + Westphalia combined offering? At what price point?','Path 2: will HSA banks opt members into clinical data as part of card issuance? What is the regulatory environment for that consent model?','Both paths: what is the sustainable unit economics — cost per member onboarded vs LTV from B2B contract value?']},
+  ]},
+  r_compete:{cat:'Risk: competitive landscape',secs:[
+    {hd:'Who is in this space',cls:'c-red',items:['Claro: personal health record and benefits navigation — direct analog, VC-backed','HealthJoy: AI-powered benefits navigation with telemedicine integration — similar B2B2C model through employers','Picwell, Jellyvision, and similar: benefits decision support tools that occupy adjacent space','Health Gorilla, Particle Health: health data networks providing FHIR-based clinical data access — relevant to the data infrastructure layer']},
+    {hd:'Westphalia\'s differentiation argument',cls:'c-teal',items:['The credit card / HSA bank distribution model is genuinely novel — no direct competitor is building this path','Member-owned portable record vs vendor-controlled data is a structural differentiation (similar to the Atlas thesis)','The People Care agentic AI + billing dispute + EOB analysis layer adds operational value beyond record storage','Key: the competitive analysis on this is listed as a TODO in the materials — needs to be completed']},
+  ]},
+  r_data:{cat:'Risk: data access fragmentation',secs:[
+    {hd:'The clinical data access problem',cls:'c-red',items:['Health data is fragmented across thousands of EHR instances, payer claims systems, labs, and pharmacy networks','FHIR APIs are improving but coverage is still incomplete — many smaller providers and payers have limited or no FHIR capability','Blue Button covers Medicare/ACA members but excludes the commercially insured and Medicaid populations','Apple Health-style workflows depend on member actively connecting each data source — high abandonment rate in practice']},
+    {hd:'The Athena connection as mitigation',cls:'c-teal',items:['Targeting Athena Health (170K physicians) as a rev cycle connection addresses the ambulatory data gap','The merchant transaction data from the Highlight card provides a parallel data path — health spending as a proxy for health activity','The Hedera immutability layer increases trust in the data that IS available, even if coverage is incomplete']},
+  ]},
+  rev_b2b:{cat:'Revenue: B2B partnerships (primary)',secs:[
+    {hd:'How Westphalia gets paid',cls:'c-purple',items:['Primary revenue model: B2B partnerships with ICHRA vendors, TPAs, HSA banks, and employers — not direct consumer payments','Per-member-per-month (PMPM) fee structure is likely — consistent with the benefits administration market','The B2B customer pays for the member benefit; the member gets free access','Target enterprise-scale revenue cycle connections (Athena 170K physicians) for the highest-ACV partnerships']},
+  ]},
+  rev_share:{cat:'Revenue: data and revenue share',secs:[
+    {hd:'The data upside',cls:'c-purple',items:['Aggregated, anonymized member health and financial data has significant value to payers, pharmaceutical companies, and health systems','Revenue share model with distribution partners — similar to the Atlas vendor toll concept','Member-governed and permissioned: members must consent to data use beyond their individual record','This is a longer-term revenue stream — requires scale (100K+ members) and governance infrastructure before it is commercially viable']},
+  ]},
+  rev_free:{cat:'Revenue: consumer freemium',secs:[
+    {hd:'The freemium model',cls:'c-purple',items:['Consumer freemium exists as a fallback for members who switch providers and lose their institutional access','"B2B2C model with freemium option for consumers who switch providers" — mentioned in the platform description','Freemium is not the primary revenue path — it is the portability safety net that protects the member experience when the B2B relationship ends','Premium consumer tier possible over time for high-engagement members who want advanced features']},
+  ]},
+  rev_api:{cat:'Revenue: API and platform fees',secs:[
+    {hd:'Platform economics',cls:'c-purple',items:['As the member data network scales, API access for third-party developers and vendors creates a platform revenue stream','FHIR-compatible APIs with permissioned access to the Westphalia network have precedent in Particle Health and Health Gorilla models','The Hedera blockchain infrastructure enables auditable, billable API access tracking — data access fees are transparent and automatable','This is a Year 2–3 revenue stream after the network reaches meaningful member density']},
+  ]},
+};
+
+const SHOW={
+  all:   ['gtm1','gtm2','data','risk'],
+  gtm1:  ['gtm1','data'],
+  gtm2:  ['gtm2','data'],
+  tech:  ['data'],
+  rev:   ['data'],
+  risk:  ['risk','data'],
+};
+
+let view='all',sel=null,hov=null,W,H,dpr,canvas,ctx;
+
+const ROW_LABELS=[
+  {y:28, t:'WESTPHALIA — CORE PLATFORM + PARTNERS'},
+  {y:152,t:'GTM PATH 1: PEOPLE CARE / ICHRA  |  GTM PATH 2: HSA / FINTECH'},
+  {y:252,t:'MEMBER (END USER) + DATA SOURCES'},
+  {y:375,t:'TECHNOLOGY STACK + INFRASTRUCTURE'},
+  {y:495,t:'RISKS + OPEN QUESTIONS'},
+  {y:595,t:'REVENUE MODEL'},
+];
+
+function sv(v,btn){view=v;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');draw();}
+window.sv=sv;
+
+function setup(){
+  canvas=document.getElementById('c');
+  W=canvas.parentElement.offsetWidth;H=640;
+  dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);draw();
+}
+
+function px(n){return n.x/680*W;}
+function py(n){return n.y;}
+function nr(n){return(n.r||20)*(sel===n.id?1.18:1);}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const dark=matchMedia('(prefers-color-scheme:dark)').matches;
+  const types=SHOW[view]||SHOW.all;
+
+  ROW_LABELS.forEach(r=>{
+    ctx.font='500 8px var(--font-sans,sans-serif)';
+    ctx.fillStyle=dark?'rgba(180,178,168,0.38)':'rgba(60,58,52,0.38)';
+    ctx.textAlign='left';ctx.fillText(r.t,6,r.y);
+    ctx.beginPath();ctx.moveTo(6,r.y+5);ctx.lineTo(W-6,r.y+5);
+    ctx.strokeStyle=dark?'rgba(180,178,168,0.1)':'rgba(60,58,52,0.1)';
+    ctx.lineWidth=0.5;ctx.stroke();
+  });
+
+  EDGES.forEach(e=>{
+    if(!types.includes(e.type))return;
+    const na=NODES.find(n=>n.id===e.a),nb=NODES.find(n=>n.id===e.b);
+    if(!na||!nb)return;
+    const ax=px(na),ay=py(na),bx=px(nb),by=py(nb);
+    const isActive=sel&&(sel===e.a||sel===e.b);
+    const col=ECOLS[e.type],bw=EW[e.type]||1.5;
+    ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);
+    ctx.strokeStyle=col+(isActive?'ff':'44');
+    ctx.lineWidth=isActive?bw+1:bw;
+    if(e.type==='risk'){ctx.setLineDash([4,3]);}else{ctx.setLineDash([]);}
+    ctx.stroke();ctx.setLineDash([]);
+    if(isActive&&e.label){
+      const ang=Math.atan2(by-ay,bx-ax);
+      const tx=bx-Math.cos(ang)*(nr(nb)+2),ty=by-Math.sin(ang)*(nr(nb)+2);
+      ctx.beginPath();
+      ctx.moveTo(tx,ty);ctx.lineTo(tx-8*Math.cos(ang-.38),ty-8*Math.sin(ang-.38));
+      ctx.moveTo(tx,ty);ctx.lineTo(tx-8*Math.cos(ang+.38),ty-8*Math.sin(ang+.38));
+      ctx.strokeStyle=col+'ff';ctx.lineWidth=1.5;ctx.stroke();
+      const mx=(ax+bx)/2,my=(ay+by)/2;
+      ctx.font='500 9px var(--font-sans,sans-serif)';
+      const bww=ctx.measureText(e.label).width+10;
+      ctx.fillStyle=dark?'rgba(20,20,18,0.88)':'rgba(255,255,255,0.92)';
+      ctx.fillRect(mx-bww/2,my-8,bww,13);
+      ctx.fillStyle=col;ctx.textAlign='center';
+      ctx.fillText(e.label,mx,my+2);
+    }
+  });
+
+  NODES.forEach(n=>{
+    const x=px(n),y=py(n),r=nr(n);
+    const col=CATS[n.cat];
+    const isSel=sel===n.id,isHov=hov===n.id;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=col+(isSel?'ff':dark?'bb':'dd');
+    ctx.fill();
+    if(isSel||isHov){ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.stroke();}
+    ctx.font=`${isSel?500:400} ${r>26?11:10}px var(--font-sans,sans-serif)`;
+    ctx.fillStyle='rgba(255,255,255,0.97)';ctx.textAlign='center';
+    const lines=n.label.split('\n'),lh=11,sy=y-(lines.length-1)*lh/2;
+    lines.forEach((l,i)=>ctx.fillText(l,x,sy+i*lh+3));
+  });
+}
+
+function getNode(mx,my){
+  for(let i=NODES.length-1;i>=0;i--){
+    const n=NODES[i],x=px(n),y=py(n),r=nr(n)+6;
+    if((mx-x)**2+(my-y)**2<=r*r)return n.id;
+  }
+  return null;
+}
+
+function showPanel(id){
+  const d=DATA[id];if(!d)return;
+  document.getElementById('def-msg').style.display='none';
+  document.getElementById('detail').style.display='block';
+  const nm=NODES.find(n=>n.id===id)?.label.replace('\n',' ')||id;
+  document.getElementById('pn').textContent=nm;
+  const col=CATS[NODES.find(n=>n.id===id)?.cat]||'#888';
+  document.getElementById('pc').textContent=d.cat;
+  document.getElementById('pc').style.color=col;
+  let html='';
+  d.secs.forEach(s=>{
+    html+=`<div class="p-hd">${s.hd}</div>`;
+    s.items.forEach(it=>{html+=`<div class="p-item ${s.cls}">${it}</div>`;});
+  });
+  document.getElementById('pbody').innerHTML=html;
+}
+
+setTimeout(()=>{
+  setup();
+  canvas.addEventListener('click',e=>{
+    const r=canvas.getBoundingClientRect();
+    const id=getNode(e.clientX-r.left,e.clientY-r.top);
+    if(id&&DATA[id]){sel=id;showPanel(id);}
+    else{sel=null;document.getElementById('def-msg').style.display='block';document.getElementById('detail').style.display='none';}
+    draw();
+  });
+  canvas.addEventListener('mousemove',e=>{
+    const r=canvas.getBoundingClientRect();
+    hov=getNode(e.clientX-r.left,e.clientY-r.top);
+    canvas.style.cursor=hov?'pointer':'default';draw();
+  });
+  canvas.addEventListener('mouseleave',()=>{hov=null;draw();});
+},100);
+window.addEventListener('resize',()=>setTimeout(setup,60));
+</script>
