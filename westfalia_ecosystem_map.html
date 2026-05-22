@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Westfalia Ecosystem Map</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+body{font-family:var(--font-sans,sans-serif)}
+#wrap{width:100%;padding:10px 0 0}
+.hdr{background:#0C447C;border-radius:10px;padding:14px 18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.ht{font-size:16px;font-weight:500;color:#fff}
+.hs{font-size:11px;color:#B5D4F4;margin-top:2px}
+.badge{font-size:10px;padding:3px 10px;border-radius:20px;font-weight:500;background:#085041;color:#fff}
+#tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.tab{padding:4px 12px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);cursor:pointer;font-size:11px;transition:all .15s}
+.tab.on{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-primary);font-weight:500}
+#layout{display:grid;grid-template-columns:1fr 295px;gap:10px;align-items:start}
+canvas{display:block;width:100%;border-radius:8px;border:0.5px solid var(--color-border-tertiary);cursor:default}
+#panel{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:14px;font-size:12px;min-height:400px}
+.p-name{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:2px}
+.p-cat{font-size:10px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;margin-bottom:8px}
+.p-hd{font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);margin:9px 0 4px}
+.p-item{font-size:11px;line-height:1.5;margin-bottom:3px;padding-left:10px;position:relative;color:var(--color-text-secondary)}
+.p-item:before{content:"";position:absolute;left:0;top:6px;width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.65}
+.c-blue{color:#0C447C}.c-blue:before{background:#0C447C}
+.c-teal{color:#085041}.c-teal:before{background:#085041}
+.c-amber{color:#854F0B}.c-amber:before{background:#854F0B}
+.c-red{color:#A32D2D}.c-red:before{background:#A32D2D}
+.c-purple{color:#3C3489}.c-purple:before{background:#3C3489}
+.c-green{color:#3B6D11}.c-green:before{background:#3B6D11}
+.def{color:var(--color-text-tertiary);font-size:11px;line-height:1.6;padding-top:6px}
+#leg{display:flex;flex-direction:column;margin-top:10px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:10px 12px}
+.leg-t{font-size:9px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--color-text-tertiary);margin-bottom:5px}
+.leg-r{display:flex;flex-wrap:wrap;gap:5px 14px;margin-bottom:8px}
+.li{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--color-text-secondary)}
+.ld{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.le{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)}
+.ll{height:3px;width:22px;border-radius:1px;flex-shrink:0}
+@media(max-width:580px){#layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<h2 class="sr-only">Westfalia ecosystem map — clinically-integrated consumer financial infrastructure, showing GTM paths, distribution partners, tech stack, revenue model, and competitive landscape</h2>
+
+<div id="wrap">
+<div class="hdr">
+  <div>
+    <div class="ht">Westfalia — Market Ecosystem Map</div>
+    <div class="hs">Clinically-integrated consumer financial infrastructure · Smart HSA/card + Smart EOB · Howlite partnership · Discovery phase · May 2026</div>
+  </div>
+  <div class="badge">Discovery / GTM validation</div>
+</div>
+
+<div id="tabs">
+  <button class="tab on" onclick="sv('all',this)">Full ecosystem</button>
+  <button class="tab" onclick="sv('gtm1',this)">GTM path 1: Health Systems</button>
+  <button class="tab" onclick="sv('gtm2',this)">GTM path 2: HSA / fintech</button>
+  <button class="tab" onclick="sv('tech',this)">Tech stack</button>
+  <button class="tab" onclick="sv('rev',this)">Revenue model</button>
+  <button class="tab" onclick="sv('risk',this)">Risks / open Qs</button>
+</div>
+
+<div id="layout">
+  <div><canvas id="c" height="640"></canvas></div>
+  <div id="panel">
+    <div id="def-msg" class="def">Click any node to explore Westfalia's two GTM paths, distribution partners, technology architecture, revenue model, competitive landscape, and open strategic questions.</div>
+    <div id="detail" style="display:none">
+      <div class="p-name" id="pn"></div>
+      <div class="p-cat" id="pc"></div>
+      <div id="pbody"></div>
+      <button style="margin-top:10px;width:100%;font-size:11px" onclick="sendPrompt('Tell me more about '+document.getElementById('pn').textContent+' in the context of Westfalia')">Explore deeper ↗</button>
+    </div>
+  </div>
+</div>
+
+<div id="leg">
+  <div class="leg-t">Node type</div>
+  <div class="leg-r">
+    <div class="li"><div class="ld" style="background:#0C447C"></div>Westfalia / core</div>
+    <div class="li"><div class="ld" style="background:#085041"></div>GTM path 1 (Health Systems / CFO)</div>
+    <div class="li"><div class="ld" style="background:#854F0B"></div>GTM path 2 (HSA / Howlite fintech)</div>
+    <div class="li"><div class="ld" style="background:#3C3489"></div>Distribution / partner</div>
+    <div class="li"><div class="ld" style="background:#3B6D11"></div>Tech / infrastructure</div>
+    <div class="li"><div class="ld" style="background:#A32D2D"></div>Risk / open question</div>
+    <div class="li"><div class="ld" style="background:#888780"></div>End user</div>
+  </div>
+  <div class="leg-t">Connection</div>
+  <div class="leg-r" style="margin-bottom:0">
+    <div class="le"><div class="ll" style="background:#085041"></div>GTM path 1</div>
+    <div class="le"><div class="ll" style="background:#854F0B"></div>GTM path 2</div>
+    <div class="le"><div class="ll" style="background:#0C447C"></div>Data / integration</div>
+    <div class="le"><div class="ll" style="background:repeating-linear-gradient(90deg,#A32D2D 0,#A32D2D 4px,transparent 4px,transparent 7px)"></div>Risk / tension</div>
+  </div>
+</div>
+</div>
+
+<script>
+const CATS={core:'#0C447C',gtm1:'#085041',gtm2:'#854F0B',partner:'#3C3489',tech:'#3B6D11',risk:'#A32D2D',user:'#888780'};
+const ECOLS={gtm1:'#0F6E56',gtm2:'#BA7517',data:'#185FA5',risk:'#A32D2D'};
+const EW={gtm1:2.2,gtm2:2.2,data:1.6,risk:1.4};
+
+const NODES=[
+  // Row 1: Core
+  {id:'west',     label:'Westfalia',            cat:'core',    x:340,y:55, r:32},
+  {id:'tim',      label:'Tim Sherwin\nCEO',      cat:'core',    x:140,y:55, r:22},
+  {id:'howlite',  label:'Howlite\n(fintech)',    cat:'gtm2',    x:530,y:55, r:22},
+
+  // Row 2: GTM paths
+  {id:'healthsys',label:'Health\nSystems',       cat:'gtm1',    x:110,y:175,r:24},
+  {id:'rcycle',   label:'Revenue\nCycle CFO',    cat:'gtm1',    x:230,y:175,r:21},
+  {id:'tpa',      label:'TPAs /\nLevel-funded',  cat:'gtm1',    x:345,y:175,r:20},
+  {id:'employer', label:'HSA / Benefits\nEcosystem',cat:'partner',x:455,y:175,r:20},
+  {id:'hsa',      label:'HSA Banks',             cat:'gtm2',    x:560,y:175,r:22},
+  {id:'card',     label:'Smart HSA\n/ Card',     cat:'gtm2',    x:620,y:270,r:20},
+
+  // Row 3: Member + data sources
+  {id:'member',   label:'Member\n(end user)',    cat:'user',    x:340,y:280,r:26},
+  {id:'provider', label:'Provider /\nEHR',       cat:'tech',    x:120,y:290,r:20},
+  {id:'payer',    label:'Payer /\nClaims',        cat:'tech',    x:210,y:290,r:20},
+
+  // Row 4: Tech stack
+  {id:'epic',     label:'Epic\nMyChart',         cat:'tech',    x:80, y:400,r:18},
+  {id:'hedera',   label:'Hedera\nHashgraph',     cat:'tech',    x:180,y:400,r:18},
+  {id:'fire',     label:'FHIR\nConnectors',      cat:'tech',    x:275,y:400,r:18},
+  {id:'athena',   label:'Athena\n(170k MDs)',    cat:'tech',    x:375,y:400,r:18},
+  {id:'smarteob', label:'Smart\nEOB (AI)',       cat:'tech',    x:470,y:400,r:18},
+  {id:'usdc',     label:'USDC\nSettlement',      cat:'tech',    x:565,y:400,r:18},
+
+  // Row 5: Risks
+  {id:'r_moat',       label:'Moat\ndurability',       cat:'risk',x:100,y:520,r:20},
+  {id:'r_partner',    label:'Partner\ndistribution',  cat:'risk',x:220,y:520,r:20},
+  {id:'r_validated',  label:'GTM not yet\nvalidated', cat:'risk',x:340,y:520,r:20},
+  {id:'r_compete',    label:'Visa / MC\nincumbents',  cat:'risk',x:455,y:520,r:18},
+  {id:'r_data',       label:'Reg /\ncompliance',      cat:'risk',x:570,y:520,r:18},
+
+  // Row 6: Revenue model
+  {id:'rev_b2b',  label:'B2B\nRevenue',          cat:'partner', x:180,y:620,r:20},
+  {id:'rev_flat', label:'$0.15 flat\nper txn',   cat:'partner', x:320,y:620,r:20},
+  {id:'rev_data', label:'Data /\nrev share',     cat:'partner', x:460,y:620,r:18},
+  {id:'rev_api',  label:'API /\nplatform fees',  cat:'partner', x:580,y:620,r:18},
+];
+
+const EDGES=[
+  // Core connections
+  {a:'tim',      b:'west',          type:'data',  label:'CEO / co-founder'},
+  {a:'howlite',  b:'west',          type:'gtm2',  label:'fintech partner'},
+
+  // GTM Path 1
+  {a:'west',     b:'healthsys',     type:'gtm1',  label:'Path 1 anchor'},
+  {a:'healthsys',b:'rcycle',        type:'gtm1',  label:'CFO / rev cycle'},
+  {a:'healthsys',b:'tpa',           type:'gtm1',  label:'adjacent'},
+  {a:'west',     b:'employer',      type:'gtm1',  label:'HSA ecosystem'},
+
+  // GTM Path 2
+  {a:'west',     b:'hsa',           type:'gtm2',  label:'Path 2 anchor'},
+  {a:'howlite',  b:'hsa',           type:'gtm2',  label:'payment rails'},
+  {a:'hsa',      b:'card',          type:'gtm2',  label:'card issuance'},
+  {a:'card',     b:'member',        type:'gtm2',  label:'auto-enroll'},
+
+  // Member / data
+  {a:'west',     b:'member',        type:'data',  label:'smart EOB / PHR'},
+  {a:'member',   b:'provider',      type:'data',  label:'clinical data'},
+  {a:'member',   b:'payer',         type:'data',  label:'claims data'},
+  {a:'provider', b:'epic',          type:'data',  label:'EHR source'},
+  {a:'payer',    b:'fire',          type:'data',  label:'FHIR feed'},
+
+  // Tech
+  {a:'west',     b:'hedera',        type:'data',  label:'T+0 settlement'},
+  {a:'west',     b:'athena',        type:'data',  label:'rev cycle'},
+  {a:'west',     b:'smarteob',      type:'data',  label:'AI layer'},
+  {a:'howlite',  b:'usdc',          type:'data',  label:'USDC rails'},
+  {a:'howlite',  b:'hedera',        type:'data',  label:'Hedera network'},
+
+  // Risks
+  {a:'west',     b:'r_moat',        type:'risk',  label:'rail durability'},
+  {a:'west',     b:'r_validated',   type:'risk',  label:'still de-risking'},
+  {a:'hsa',      b:'r_partner',     type:'risk',  label:'distribution design'},
+  {a:'west',     b:'r_compete',     type:'risk',  label:'network effects'},
+  {a:'howlite',  b:'r_data',        type:'risk',  label:'reg clarity'},
+
+  // Revenue
+  {a:'west',     b:'rev_b2b',       type:'data',  label:'primary model'},
+  {a:'howlite',  b:'rev_flat',      type:'data',  label:'$0.15 flat fee'},
+  {a:'west',     b:'rev_data',      type:'data',  label:'data upside'},
+  {a:'west',     b:'rev_api',       type:'data',  label:'platform play'},
+];
+
+const DATA={
+  west:{cat:'Westfalia — core platform',secs:[
+    {hd:'What it is',cls:'c-blue',items:[
+      'Clinically-integrated consumer financial infrastructure — a smart HSA/credit card paired with an agentic "Smart EOB" that makes healthcare payment data intelligent',
+      'The thesis: healthcare has become a major consumer financial responsibility, but the underlying payment and data infrastructure remains fragmented, expensive, and unintelligent',
+      'B2B2C model — distributed through health systems, HSA banks, and benefits ecosystem partners, not sold direct to consumers',
+      'Partnership with Howlite provides the payment rail backbone: alternative transaction rails, $0.15 flat fee per transaction, T+0 USDC settlement, and L3 FHIR data on every transaction',
+      'The transaction layer itself becomes a foundational healthcare data asset and orchestration layer for future agentic workflows'
+    ]},
+    {hd:'The product',cls:'c-teal',items:[
+      'Smart HSA / credit card: any Westfalia-enabled card routes through Howlite\'s payment network — replacing 2–4% interchange with $0.15 flat and attaching clinical data to every transaction',
+      'Smart EOB: real-time Explanation of Benefits — the consumer finally knows what they owe, what insurance covered, and whether charges are correct, at transaction time',
+      'FHIR L3 data on every transaction: CPT codes, ICD codes, auto-substantiation for HSA/FSA eligibility — zero manual overhead',
+      'Agentic workflows: dispute automation, billing error detection, prior auth support, appointment preparation'
+    ]},
+    {hd:'Team',cls:'c-purple',items:[
+      'Tim Sherwin (CEO / Co-Founder) — founded CardinalCommerce, acquired by Visa; 20+ years card-network infrastructure',
+      'Chandra Balasubramanian (CTO / Co-Founder) — co-founded CardinalCommerce; architect of Hedera integration and real-time FHIR compliance engine',
+      'Ray Herschman — co-founder, strategic partnerships and scaling; previously founded Resilience Capital',
+      'Peter Yates — co-founder, fintech operations and go-to-market'
+    ]},
+    {hd:'Two GTM paths',cls:'c-amber',items:[
+      'Path 1: Health systems and revenue cycle — target CFO / revenue cycle teams at health systems; T+0 settlement and 60% lower processing costs are the wedge',
+      'Path 2: HSA banks and fintech — partner with HSA banks and Howlite; every card issued auto-enrolls member into smart EOB and clinical data; the distribution flywheel',
+      'Both paths run in parallel. Health systems are the near-term anchor. HSA/fintech is the accelerant at scale.'
+    ]},
+  ]},
+  tim:{cat:'Tim Sherwin — CEO / Co-Founder',secs:[
+    {hd:'Background',cls:'c-blue',items:[
+      'Founded CardinalCommerce, a payment authentication company — acquired by Visa',
+      '20+ years in card-network infrastructure and payment authentication',
+      'Deep relationships across card networks, issuing banks, and payment processors',
+      'Leads the overall Westfalia strategy and the HSA bank / fintech GTM track alongside Peter Yates'
+    ]},
+    {hd:'Co-founder team',cls:'c-purple',items:[
+      'Chandra Balasubramanian (CTO) — co-founded CardinalCommerce with Tim; architect of the Hedera and FHIR infrastructure',
+      'Ray Herschman — co-founder, strategic partnerships; previously founded Resilience Capital',
+      'Peter Yates — co-founder, operations and GTM; backgrounds in fintech at scale',
+      'Proven exit: CardinalCommerce → Visa gives the team credibility with financial infrastructure investors'
+    ]},
+  ]},
+  howlite:{cat:'Howlite — payment infrastructure partner',secs:[
+    {hd:'What Howlite does',cls:'c-amber',items:[
+      'Modern payment infrastructure company — "The Unaffiliated Payment Network" — replacing legacy card rails in healthcare',
+      'Routes any Howlite-enabled card (debit, credit, HSA/FSA) through a smarter layer: $0.15 flat fee replacing 2–4% interchange',
+      'T+0 settlement via USDC directly to provider\'s EVM wallet on Hedera Hashgraph — no T+2 to T+5 float',
+      'L3 data on every transaction: CPT codes, ICD codes, FHIR fields, IIAS auto-substantiation, fraud scoring',
+      'Reduces parties from 6+ (legacy) to 3 — no acquirer, card network, issuer, custodian, TPA chain'
+    ]},
+    {hd:'Why this is the distribution flywheel',cls:'c-teal',items:[
+      'Every Howlite-enabled card issued becomes a Westfalia smart EOB onboarding event — clinical data attached at the transaction layer automatically',
+      'HSA banks partnering with Howlite get: 80%+ compliance burden reduction, new routing revenue, AI-powered fraud prevention, Durbin compliance readiness',
+      'Health systems get: T+0 settlement (vs 2–5 day wait), 60% lower processing cost, auto-substantiation, real-time revenue visibility',
+      'The GENIUS Act (signed 2025) legitimizes USDC settlement; the Durbin Amendment and Credit Card Competition Act create the regulatory tailwind for alternative routing'
+    ]},
+    {hd:'Infrastructure',cls:'c-green',items:[
+      'Built on Hedera Hashgraph: 10K+ TPS, $0.001 settlement cost, aBFT consensus, finality in 3–5 seconds',
+      'Governing council includes Google, IBM, Boeing, LG, Dell — enterprise-grade trust',
+      'USDC as native currency — 1:1 reserve-backed, federally regulated under GENIUS Act',
+      'AI layer: real-time CPT review, duplicate detection, dispute reduction (~90%), auto compliance filing'
+    ]},
+  ]},
+  healthsys:{cat:'GTM path 1: Health systems',secs:[
+    {hd:'Why health systems are the anchor',cls:'c-teal',items:[
+      'CFO and revenue cycle teams at health systems are the primary buyers — they absorb the cost of legacy payment processing (2–4% on every transaction) and the T+2 to T+5 settlement delay',
+      'A $500M health system processing $100M in card payments annually saves $1.5–2M+ per year switching to Howlite\'s $0.15 flat fee model',
+      'T+0 same-day settlement directly solves cash flow — a near-universal pain point in health system finance',
+      'Early interest confirmed from health system CFO / revenue cycle teams per Westfalia team notes'
+    ]},
+    {hd:'The value proposition',cls:'c-blue',items:[
+      '60% lower processing costs vs legacy card networks ($0.15 flat vs 2.5–3.5%)',
+      'T+0 USDC settlement — funds arrive the same day the patient pays, not 2–5 business days later',
+      'Auto-substantiation: L3 data + FHIR codes validate HSA/FSA eligibility at point of sale — eliminates manual review',
+      'Reduced chargebacks and disputes: richer transaction data means fewer mis-coded claims and denied payments',
+      'Real-time revenue visibility: dashboard-level insight into payment status and cash flow'
+    ]},
+  ]},
+  rcycle:{cat:'Revenue cycle — CFO entry point',secs:[
+    {hd:'The revenue cycle wedge',cls:'c-teal',items:[
+      'Revenue cycle management is the operational nerve center for health system finance — billing, collections, denial management, and payment posting',
+      'Legacy card processing fees are a direct line item that CFOs understand and want to reduce',
+      'The Westfalia / Howlite model attacks three revenue cycle pain points simultaneously: processing cost, settlement speed, and compliance overhead',
+      'Auto-substantiation via L3 FHIR data eliminates the manual IIAS review teams that drain 80%+ overhead on every HSA/FSA claim'
+    ]},
+  ]},
+  tpa:{cat:'Distribution: TPAs and level-funded plans',secs:[
+    {hd:'Why TPAs matter',cls:'c-teal',items:[
+      'Third-party administrators manage health benefits for self-funded employers — they have direct incentive to reduce claims costs and administrative overhead',
+      'Level-funded plans are a fast-growing hybrid model: employer pays fixed monthly amount, TPA manages the risk',
+      'Both TPA and level-funded employers want tools that reduce billing errors, improve member transparency, and accelerate collections',
+      'A single TPA partnership covers thousands of members — a meaningful distribution event'
+    ]},
+    {hd:'Westfalia value prop for TPAs',cls:'c-blue',items:[
+      'Smart EOB reduces member confusion and support calls — directly reduces TPA operational overhead',
+      'Dispute automation (AI-generated letters) reduces the cost of billing error resolution to near zero',
+      'Auto-substantiation eliminates manual HSA/FSA claim review — 80%+ overhead reduction',
+      'Real-time data layer enables TPA cost reporting and population health analytics'
+    ]},
+  ]},
+  employer:{cat:'HSA / Benefits ecosystem',secs:[
+    {hd:'The benefits ecosystem opportunity',cls:'c-purple',items:[
+      'HSA and benefits ecosystem participants are natural distribution partners — they already hold health financial data and member trust',
+      'ICHRA vendors, benefits administrators, and employer HR platforms all benefit from adding a smarter data layer to their existing workflows',
+      'The Westfalia smart EOB is additive to existing benefits platforms — it enriches the member experience without replacing the administrator',
+      'Employer-sponsored access via HRIS (ADP, Workday, Rippling) enables pre-authenticated member onboarding with known benefits context'
+    ]},
+    {hd:'Early interest profile',cls:'c-amber',items:[
+      'HSA / benefits ecosystem participants are among the four early interest groups confirmed by the Westfalia team',
+      'Fintech infrastructure partners represent another early interest group — Howlite fits this profile',
+      'Healthcare AI operators are a third group — they need the transaction data layer Westfalia provides',
+      'Health system CFO / revenue cycle teams complete the four early-interest categories'
+    ]},
+  ]},
+  hsa:{cat:'GTM path 2: HSA banks',secs:[
+    {hd:'The HSA bank distribution model',cls:'c-amber',items:[
+      'HSA banks hold member health savings accounts and already process health-related financial transactions — ~36M HSA accounts, ~$116B in assets (Devenir 2024)',
+      'Partnering with Howlite, every HSA card issued can automatically opt the member into L3 clinical data, smart EOB, and FHIR-enriched transaction records',
+      'This is the scale path: one HSA bank partnership = hundreds of thousands of potential Westfalia members without direct B2C marketing spend',
+      'Tim Sherwin leads this GTM track'
+    ]},
+    {hd:'Why HSA banks will partner',cls:'c-teal',items:[
+      'New routing revenue on every Howlite-enabled card — capture interchange delta without losing the member',
+      '80%+ compliance burden reduction: automated IRS substantiation eliminates manual HSA/FSA transaction review',
+      'AI-powered fraud prevention: real-time transaction scoring reduces fraud losses before settlement',
+      'Durbin Compliance Ready: Howlite is a purpose-built alternative rail that satisfies multi-network routing mandates',
+      'Yield-bearing settlement: hUSD stablecoin model enables continuous Treasury-backed yield, replacing one-time interchange with ongoing revenue'
+    ]},
+    {hd:'Partner retention tension',cls:'c-red',items:[
+      'Key open question: Westfalia\'s portability promise (data travels with the member) conflicts with HSA bank interest in member retention',
+      'Resolution likely requires a data licensing model where the bank retains access to anonymized aggregate data even after the member moves',
+      'Must be resolved in partnership design before scaling distribution'
+    ]},
+  ]},
+  card:{cat:'Smart HSA / card — distribution flywheel',secs:[
+    {hd:'The card as distribution mechanism',cls:'c-amber',items:[
+      'Every smart card issued auto-enrolls the cardholder into clinical and claims data from merchant transactions — no active data entry required',
+      'The member gets a health financial record built passively through their spending — this is a fundamentally different onboarding motion',
+      'Described as the "ideal — very attractive distribution model" because it scales with card issuance, not with sales headcount',
+      'Howlite\'s $0.15 flat fee and T+0 USDC settlement are the economic underpinning of this card model'
+    ]},
+    {hd:'Transaction intelligence on every swipe',cls:'c-green',items:[
+      'CPT / ICD auto-coding at transaction time — every healthcare spend is automatically categorized',
+      'FHIR fields attached: full IIAS, L3 data, IIAS status verified in real time',
+      'Fraud score: AI assigns risk score before approval — 0.02 (low) to 1.0 (high)',
+      'Settlement: USDC direct to provider EVM wallet, Hedera block confirmation in 3–5 seconds',
+      'Howlite fee: $0.15 flat regardless of transaction size'
+    ]},
+  ]},
+  member:{cat:'End user: the member / patient',secs:[
+    {hd:'Who the member is',cls:'c-blue',items:[
+      'Any individual with a health plan, HSA, or employer benefits — the universal healthcare consumer',
+      'Westfalia\'s core promise: you finally understand what you paid, why, and whether it was correct — at transaction time, not weeks later when the EOB arrives',
+      'The member is the beneficiary of the platform but is NOT the paying customer — health systems, HSA banks, and benefits partners pay',
+      'Consumer freemium exists as a fallback for members who switch providers and lose institutional access'
+    ]},
+    {hd:'How the member benefits',cls:'c-teal',items:[
+      'Smart EOB at the point of payment: real-time, accurate, connected to what you actually paid',
+      'Dispute automation: AI-generated letters reduce the effort of billing disputes to near zero',
+      'HSA/FSA auto-substantiation: eligible expenses flagged automatically — no manual receipt submission',
+      'Full audit trail: every transaction recorded on Hedera — tamper-proof, auditable health financial history',
+      'Agentic workflows: appointment prep, prior auth support, healthcare navigation all powered by the transaction data layer'
+    ]},
+  ]},
+  provider:{cat:'Tech: provider / EHR data source',secs:[
+    {hd:'Clinical data flow',cls:'c-green',items:[
+      'Provider EHR systems (Epic, Athena, Cerner) are the source of truth for clinical records — diagnoses, medications, labs, imaging, visit notes',
+      'FHIR R4 APIs (mandated under 21st Century Cures Act) provide the scalable connection layer — one standard covers most EHR systems',
+      'Howlite\'s L3 data payload on every transaction already carries CPT and ICD codes — reducing dependence on full EHR pull for claims adjudication',
+      'The combination: transaction-level clinical coding (Howlite) + full EHR record (FHIR) = complete health financial and clinical picture'
+    ]},
+  ]},
+  payer:{cat:'Tech: payer / claims data source',secs:[
+    {hd:'Claims data flow',cls:'c-green',items:[
+      'Payer claims data is the financial record of what insurance covered and what the member owes — the source of the traditional EOB',
+      'Blue Button 2.0 provides CMS claims data for Medicare and ACA marketplace members',
+      'Commercial payer FHIR APIs (Aetna, UHC, Cigna, BCBS) are increasingly available under federal interoperability mandates',
+      'The smart EOB layer combines payer claims data with Howlite transaction-level FHIR data — creating a real-time, accurate EOB without waiting for the payer\'s batch process'
+    ]},
+  ]},
+  epic:{cat:'Tech: Epic MyChart',secs:[
+    {hd:'Role in the tech stack',cls:'c-green',items:[
+      'Epic MyChart is the patient portal for the majority of large US health systems — 280M+ patient records',
+      'FHIR-compatible data connections enable clinical record access at scale without custom per-hospital integrations',
+      'Epic\'s patient data is the richest clinical data source available — diagnoses, medications, labs, imaging, full visit history',
+      'An Epic integration is a trust signal for health system and payer partners — Westfalia operates within established clinical infrastructure'
+    ]},
+  ]},
+  hedera:{cat:'Tech: Hedera Hashgraph',secs:[
+    {hd:'What Hedera provides',cls:'c-green',items:[
+      'Enterprise-grade distributed ledger: 10K+ transactions per second, aBFT consensus, finality in 3–5 seconds',
+      '$0.001 settlement cost per transaction vs $0.02–$0.30 on legacy rails — 99% cheaper',
+      '24/7 real-time settlement — no batch windows, no float',
+      'Carbon-negative network; governing council includes Google, IBM, Boeing, LG, Dell, Deutsche Telekom, ServiceNow, Ubisoft',
+      'Transaction immutability: health-related financial records on Hedera are tamper-proof and auditable — supports billing dispute use cases'
+    ]},
+    {hd:'GENIUS Act alignment',cls:'c-blue',items:[
+      'GENIUS Act (signed into law 2025): federal regulatory framework for payment stablecoins like USDC — 1:1 reserve backing required',
+      'Legitimizes Westfalia\'s T+0 USDC settlement layer with full regulatory clarity and consumer protection',
+      'Howlite\'s USDC settlement on Hedera is now a legally clear, federally regulated product — not a crypto edge case'
+    ]},
+  ]},
+  fire:{cat:'Tech: FHIR connectors',secs:[
+    {hd:'What FHIR is',cls:'c-green',items:[
+      'Fast Healthcare Interoperability Resources — the federal standard for health data exchange (mandated under 21st Century Cures Act)',
+      'FHIR R4 APIs allow Westfalia to pull clinical data from EHRs and payer claims systems without bespoke point-to-point integrations',
+      'The majority of major EHR and payer systems now have FHIR R4 APIs — this is the scalable data access path',
+      'Howlite\'s transaction layer already embeds FHIR fields (L3 + Full IIAS) on every transaction — FHIR is the data standard throughout the stack'
+    ]},
+  ]},
+  athena:{cat:'Tech: Athena Health',secs:[
+    {hd:'Why Athena matters',cls:'c-green',items:[
+      'Athena Health covers 170K physicians — noted as a target for revenue cycle connections in Westfalia materials',
+      'Unlike Epic which dominates hospital systems, Athena dominates the ambulatory and independent physician market',
+      'A single Athena integration gives Westfalia access to the physician practice data layer often missing from hospital-centric integrations',
+      'Revenue cycle data from Athena enables the billing dispute and balance billing protection features core to Westfalia\'s member value proposition'
+    ]},
+  ]},
+  smarteob:{cat:'Tech: Smart EOB (AI layer)',secs:[
+    {hd:'What the Smart EOB does',cls:'c-green',items:[
+      'Real-time Explanation of Benefits — the consumer finally knows what they owe, what insurance covered, and whether charges are correct, at the point of payment',
+      'Traditional EOBs arrive weeks after the service and are notoriously confusing — the Smart EOB makes them real-time, accurate, and actionable',
+      'AI validates CPT codes, flags duplicate billing and upcoding, detects balance billing violations, and auto-generates dispute letters',
+      'The Smart EOB is powered by Howlite\'s L3 FHIR transaction data — every swipe of the card generates the inputs the AI needs'
+    ]},
+    {hd:'Agentic capabilities',cls:'c-blue',items:[
+      'Dispute process automation: letter generation reduces member effort to near zero; -90% dispute rate with pre-validated data',
+      'Prior auth support: AI identifies likely prior auth requirements based on CPT codes before the appointment',
+      'Appointment preparation: checklists based on patient data — AI-powered ahead of clinical visits',
+      'Generic chat with full health context: the member can ask questions about any transaction, claim, or charge in natural language'
+    ]},
+  ]},
+  usdc:{cat:'Tech: USDC settlement layer',secs:[
+    {hd:'USDC in the Westfalia stack',cls:'c-green',items:[
+      'USDC (USD Coin) is a fully-reserved, dollar-pegged stablecoin — 1:1 backed, federally regulated under the GENIUS Act (signed 2025)',
+      'Howlite settles transactions directly to provider EVM wallets in USDC at T+0 — same day, every time',
+      'For health systems: eliminates the 2–5 business day ACH batch window that creates cash flow volatility',
+      'For HSA banks: hUSD stablecoin model enables continuous Treasury-backed yield for every day funds circulate — replacing one-time interchange with ongoing revenue',
+      'No wire fees, no float, no batch windows — 24/7 real-time settlement on Hedera'
+    ]},
+  ]},
+  r_moat:{cat:'Risk: moat durability',secs:[
+    {hd:'The open question',cls:'c-red',items:[
+      'Is the payment rail advantage durable? Card networks (Visa, Mastercard) are investing in richer data payloads and faster settlement — the alternative rail advantage could compress',
+      'The moat is not just the rails — it is the clinical data layer (L3 FHIR, CPT/ICD coding) and the switching costs built on top of it',
+      'Howlite\'s approach: the Durbin Amendment and Credit Card Competition Act create a regulatory moat — alternative routing is a legally mandated option, not a workaround',
+      'The most defensible moat: the data asset that accumulates as transactions flow through the network — the more health systems and HSA banks on Westfalia/Howlite, the richer the data'
+    ]},
+  ]},
+  r_partner:{cat:'Risk: partner distribution design',secs:[
+    {hd:'The structural question',cls:'c-red',items:[
+      'Health systems and HSA banks need to choose to route through Howlite — they do not have to',
+      'The partnership model must deliver enough economic value (60% cost savings, T+0 settlement, compliance reduction) to overcome switching inertia',
+      'Portability tension: if a member\'s health record travels with them, does the distributing partner (HSA bank, health system) lose their data advantage when the member leaves?',
+      'Resolution: likely a data licensing model where the partner retains access to anonymized aggregate data, while the member retains their individual record',
+      'Must be resolved in partnership design before scaling — flagged as a core open question'
+    ]},
+  ]},
+  r_validated:{cat:'Risk: GTM not yet validated',secs:[
+    {hd:'Current phase is discovery',cls:'c-red',items:[
+      'This is a de-risking and validation phase, not live execution — GTM paths are still being validated',
+      'Early interest confirmed from health systems (CFO/revenue cycle), HSA/benefits ecosystem, fintech infrastructure partners, and healthcare AI operators — but not yet signed at scale',
+      'The immediate priority: validate GTM before signing partners at scale; document the strategy; identify key validation questions'
+    ]},
+    {hd:'What needs to be validated',cls:'c-amber',items:[
+      'Path 1: will health system CFOs prioritize Howlite routing over their existing payment processor relationships? What is the switching cost?',
+      'Path 2: will HSA banks opt members into clinical data as part of card issuance? What is the consent model and regulatory environment?',
+      'Both paths: what is sustainable unit economics — cost per member onboarded vs LTV from B2B contract value?',
+      'Capital formation: what is the right sequencing — payment rail revenue first, data layer second, platform third?'
+    ]},
+  ]},
+  r_compete:{cat:'Risk: competitive landscape',secs:[
+    {hd:'Who is in this space',cls:'c-red',items:[
+      'Visa / Mastercard: incumbents investing in richer data payloads and faster settlement — the threat that the alternative rail advantage compresses',
+      'HealthJoy: AI-powered benefits navigation with telemedicine — similar B2B2C model through employers',
+      'Claro: personal health record and benefits navigation — direct analog, VC-backed',
+      'Zelis, Waystar, Availity: revenue cycle and payment solution providers with existing health system relationships',
+      'Health Gorilla, Particle Health: health data networks providing FHIR-based clinical data access — relevant to infrastructure layer'
+    ]},
+    {hd:'Westfalia / Howlite differentiation',cls:'c-teal',items:[
+      'The $0.15 flat fee + T+0 USDC settlement + L3 FHIR data combination is not offered by any single incumbent',
+      'The payment rail advantage creates a structural data advantage: every transaction generates clinical data that legacy networks don\'t produce',
+      'The HSA bank + card issuance distribution model is genuinely novel — no direct competitor is building this GTM path',
+      'Regulatory tailwinds (Durbin, CCCA, GENIUS Act) favor the alternative rail model specifically'
+    ]},
+  ]},
+  r_data:{cat:'Risk: regulatory and compliance',secs:[
+    {hd:'The regulatory landscape',cls:'c-red',items:[
+      'HIPAA: transaction-level clinical data (CPT codes, diagnoses) attached to payment records creates a PHI handling obligation — BAAs required with all partners',
+      'IRS HSA substantiation rules: L3 data auto-substantiation must meet IRS IIAS requirements — Howlite\'s FHIR data layer is designed to satisfy this, but needs legal validation at scale',
+      'GENIUS Act (2025): federally regulates payment stablecoins — clarifies USDC settlement but adds compliance requirements for issuers',
+      'Durbin Amendment and CCCA: favorable for alternative routing but card networks will challenge aggressively — litigation risk on routing mandates'
+    ]},
+    {hd:'Mitigation',cls:'c-teal',items:[
+      'Howlite built for regulatory compliance: IIAS auto-substantiation, FHIR L3 data, and Hedera immutability are designed to satisfy HSA, HIPAA, and IRS requirements simultaneously',
+      'GENIUS Act is a tailwind, not a headwind — it legitimizes the USDC settlement layer with full regulatory clarity',
+      'The Durbin Amendment already in force for debit; CCCA extending to credit represents future TAM expansion'
+    ]},
+  ]},
+  rev_b2b:{cat:'Revenue: B2B partnerships (primary)',secs:[
+    {hd:'How Westfalia gets paid',cls:'c-purple',items:[
+      'Primary revenue model: B2B partnerships with health systems, HSA banks, TPAs, and benefits ecosystem partners — not direct consumer payments',
+      'Health systems pay for the Howlite payment routing layer (savings are immediate and measurable — 60% processing cost reduction)',
+      'HSA banks pay for the compliance automation and new routing revenue model',
+      'Per-member-per-month (PMPM) or per-transaction fee structure — consistent with the benefits administration and payment processing markets',
+      'The B2B customer pays for the member benefit; the member gets smart EOB for free'
+    ]},
+  ]},
+  rev_flat:{cat:'Revenue: $0.15 flat transaction fee',secs:[
+    {hd:'The transaction economics',cls:'c-purple',items:[
+      'Howlite charges $0.15 flat per transaction replacing 2.5–3.5% interchange — at $150 average healthcare transaction, that is $3.75–5.25 per transaction vs $0.15',
+      'At $350B in annual healthcare card spend (Westfalia\'s target market), even 1% market share = $3.5B in transaction volume',
+      'The $0.15 flat fee is the revenue mechanism; the data payload is the moat',
+      'Howlite fee is transparent to all parties — no hidden markup, no opaque interchange waterfall'
+    ]},
+  ]},
+  rev_data:{cat:'Revenue: data and revenue share',secs:[
+    {hd:'The data upside',cls:'c-purple',items:[
+      'Aggregated, anonymized health financial data from the transaction network has value to payers, pharmaceutical companies, health systems, and benefits managers',
+      'Member-governed and permissioned: members must consent to data use beyond their individual record',
+      'Revenue share model with distribution partners — similar to network data licensing in financial services',
+      'Longer-term revenue stream — requires scale (100K+ members) and governance infrastructure before commercially viable'
+    ]},
+  ]},
+  rev_api:{cat:'Revenue: API and platform fees',secs:[
+    {hd:'Platform economics',cls:'c-purple',items:[
+      'As the member data network scales, API access for third-party developers and healthcare AI operators creates a platform revenue stream',
+      'FHIR-compatible APIs with permissioned access to the Westfalia network have precedent in Particle Health and Health Gorilla models',
+      'Hedera immutability enables auditable, billable API access tracking — data access fees are transparent and automatable',
+      'Healthcare AI operators are a confirmed early interest group — they need the transaction data layer Westfalia / Howlite provides',
+      'Year 2–3 revenue stream after network reaches meaningful member density'
+    ]},
+  ]},
+};
+
+const SHOW={
+  all:   ['gtm1','gtm2','data','risk'],
+  gtm1:  ['gtm1','data'],
+  gtm2:  ['gtm2','data'],
+  tech:  ['data'],
+  rev:   ['data'],
+  risk:  ['risk','data'],
+};
+
+let view='all',sel=null,hov=null,W,H,dpr,canvas,ctx;
+
+const ROW_LABELS=[
+  {y:28, t:'WESTFALIA — CORE PLATFORM + TEAM'},
+  {y:152,t:'GTM PATH 1: HEALTH SYSTEMS / CFO  |  GTM PATH 2: HSA BANKS / HOWLITE FINTECH'},
+  {y:255,t:'MEMBER (END USER) + DATA SOURCES'},
+  {y:375,t:'TECHNOLOGY STACK + INFRASTRUCTURE'},
+  {y:495,t:'RISKS + OPEN QUESTIONS'},
+  {y:595,t:'REVENUE MODEL'},
+];
+
+function sv(v,btn){view=v;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');draw();}
+window.sv=sv;
+
+function setup(){
+  canvas=document.getElementById('c');
+  W=canvas.parentElement.offsetWidth;H=640;
+  dpr=window.devicePixelRatio||1;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);draw();
+}
+
+function px(n){return n.x/680*W;}
+function py(n){return n.y;}
+function nr(n){return(n.r||20)*(sel===n.id?1.18:1);}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const dark=matchMedia('(prefers-color-scheme:dark)').matches;
+  const types=SHOW[view]||SHOW.all;
+
+  ROW_LABELS.forEach(r=>{
+    ctx.font='500 8px var(--font-sans,sans-serif)';
+    ctx.fillStyle=dark?'rgba(180,178,168,0.38)':'rgba(60,58,52,0.38)';
+    ctx.textAlign='left';ctx.fillText(r.t,6,r.y);
+    ctx.beginPath();ctx.moveTo(6,r.y+5);ctx.lineTo(W-6,r.y+5);
+    ctx.strokeStyle=dark?'rgba(180,178,168,0.1)':'rgba(60,58,52,0.1)';
+    ctx.lineWidth=0.5;ctx.stroke();
+  });
+
+  EDGES.forEach(e=>{
+    if(!types.includes(e.type))return;
+    const na=NODES.find(n=>n.id===e.a),nb=NODES.find(n=>n.id===e.b);
+    if(!na||!nb)return;
+    const ax=px(na),ay=py(na),bx=px(nb),by=py(nb);
+    const isActive=sel&&(sel===e.a||sel===e.b);
+    const col=ECOLS[e.type],bw=EW[e.type]||1.5;
+    ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(bx,by);
+    ctx.strokeStyle=col+(isActive?'ff':'44');
+    ctx.lineWidth=isActive?bw+1:bw;
+    if(e.type==='risk'){ctx.setLineDash([4,3]);}else{ctx.setLineDash([]);}
+    ctx.stroke();ctx.setLineDash([]);
+    if(isActive&&e.label){
+      const ang=Math.atan2(by-ay,bx-ax);
+      const tx=bx-Math.cos(ang)*(nr(nb)+2),ty=by-Math.sin(ang)*(nr(nb)+2);
+      ctx.beginPath();
+      ctx.moveTo(tx,ty);ctx.lineTo(tx-8*Math.cos(ang-.38),ty-8*Math.sin(ang-.38));
+      ctx.moveTo(tx,ty);ctx.lineTo(tx-8*Math.cos(ang+.38),ty-8*Math.sin(ang+.38));
+      ctx.strokeStyle=col+'ff';ctx.lineWidth=1.5;ctx.stroke();
+      const mx=(ax+bx)/2,my=(ay+by)/2;
+      ctx.font='500 9px var(--font-sans,sans-serif)';
+      const bww=ctx.measureText(e.label).width+10;
+      ctx.fillStyle=dark?'rgba(20,20,18,0.88)':'rgba(255,255,255,0.92)';
+      ctx.fillRect(mx-bww/2,my-8,bww,13);
+      ctx.fillStyle=col;ctx.textAlign='center';
+      ctx.fillText(e.label,mx,my+2);
+    }
+  });
+
+  NODES.forEach(n=>{
+    const x=px(n),y=py(n),r=nr(n);
+    const col=CATS[n.cat];
+    const isSel=sel===n.id,isHov=hov===n.id;
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=col+(isSel?'ff':dark?'bb':'dd');
+    ctx.fill();
+    if(isSel||isHov){ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.stroke();}
+    ctx.font=`${isSel?500:400} ${r>26?11:10}px var(--font-sans,sans-serif)`;
+    ctx.fillStyle='rgba(255,255,255,0.97)';ctx.textAlign='center';
+    const lines=n.label.split('\n'),lh=11,sy=y-(lines.length-1)*lh/2;
+    lines.forEach((l,i)=>ctx.fillText(l,x,sy+i*lh+3));
+  });
+}
+
+function getNode(mx,my){
+  for(let i=NODES.length-1;i>=0;i--){
+    const n=NODES[i],x=px(n),y=py(n),r=nr(n)+6;
+    if((mx-x)**2+(my-y)**2<=r*r)return n.id;
+  }
+  return null;
+}
+
+function showPanel(id){
+  const d=DATA[id];if(!d)return;
+  document.getElementById('def-msg').style.display='none';
+  document.getElementById('detail').style.display='block';
+  const nm=NODES.find(n=>n.id===id)?.label.replace('\n',' ')||id;
+  document.getElementById('pn').textContent=nm;
+  const col=CATS[NODES.find(n=>n.id===id)?.cat]||'#888';
+  document.getElementById('pc').textContent=d.cat;
+  document.getElementById('pc').style.color=col;
+  let html='';
+  d.secs.forEach(s=>{
+    html+=`<div class="p-hd">${s.hd}</div>`;
+    s.items.forEach(it=>{html+=`<div class="p-item ${s.cls}">${it}</div>`;});
+  });
+  document.getElementById('pbody').innerHTML=html;
+}
+
+setTimeout(()=>{
+  setup();
+  canvas.addEventListener('click',e=>{
+    const r=canvas.getBoundingClientRect();
+    const id=getNode(e.clientX-r.left,e.clientY-r.top);
+    if(id&&DATA[id]){sel=id;showPanel(id);}
+    else{sel=null;document.getElementById('def-msg').style.display='block';document.getElementById('detail').style.display='none';}
+    draw();
+  });
+  canvas.addEventListener('mousemove',e=>{
+    const r=canvas.getBoundingClientRect();
+    hov=getNode(e.clientX-r.left,e.clientY-r.top);
+    canvas.style.cursor=hov?'pointer':'default';draw();
+  });
+  canvas.addEventListener('mouseleave',()=>{hov=null;draw();});
+},100);
+window.addEventListener('resize',()=>setTimeout(setup,60));
+</script>
+</body>
+</html>
