@@ -1,0 +1,277 @@
+
+<h2 class="sr-only">US Healthcare Market Concentration Heat Map — HHI of Health Plans and Health Systems by Metro Area</h2>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans, sans-serif); }
+.container { padding: 1rem 0; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 1.25rem; align-items: center; }
+.ctrl-btn { padding: 6px 14px; font-size: 13px; border-radius: var(--border-radius-md); cursor: pointer; border: 0.5px solid var(--color-border-secondary); background: var(--color-background-secondary); color: var(--color-text-primary); transition: all 0.15s; }
+.ctrl-btn.active { background: #185FA5; color: #E6F1FB; border-color: #185FA5; }
+.ctrl-btn:hover:not(.active) { background: var(--color-background-secondary); border-color: var(--color-border-primary); }
+.metrics { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 1.25rem; }
+.metric-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+.metric-label { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+.metric-val { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.metric-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+.map-wrap { position: relative; width: 100%; background: var(--color-background-secondary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); overflow: hidden; }
+#map-svg { display: block; width: 100%; }
+.legend { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 11px; color: var(--color-text-secondary); }
+.legend-bar { height: 10px; width: 180px; border-radius: 3px; flex-shrink: 0; }
+.legend-label { font-size: 11px; color: var(--color-text-secondary); }
+.table-wrap { margin-top: 1.25rem; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { text-align: left; padding: 8px 10px; border-bottom: 0.5px solid var(--color-border-secondary); font-weight: 500; color: var(--color-text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+td { padding: 7px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--color-background-secondary); }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+.pill-red { background: #FCEBEB; color: #791F1F; }
+.pill-amber { background: #FAEEDA; color: #633806; }
+.pill-green { background: #EAF3DE; color: #27500A; }
+.hhi-bar-wrap { display: flex; align-items: center; gap: 6px; }
+.hhi-bar { height: 6px; border-radius: 3px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
+@media (prefers-color-scheme: dark) {
+  .pill-red { background: #501313; color: #F7C1C1; }
+  .pill-amber { background: #412402; color: #FAC775; }
+  .pill-green { background: #173404; color: #C0DD97; }
+}
+</style>
+
+<div class="container">
+  <div class="controls">
+    <span style="font-size:13px; color:var(--color-text-secondary); margin-right:4px;">View:</span>
+    <button class="ctrl-btn active" onclick="setView('overlap')" id="btn-overlap">Overlap (both)</button>
+    <button class="ctrl-btn" onclick="setView('plans')" id="btn-plans">Health plan HHI</button>
+    <button class="ctrl-btn" onclick="setView('systems')" id="btn-systems">Health system HHI</button>
+    <button class="ctrl-btn" onclick="setView('target')" id="btn-target" style="margin-left:auto; background:var(--color-background-danger); color:var(--color-text-danger); border-color:var(--color-border-danger);">Smart HSA targets</button>
+  </div>
+
+  <div class="metrics" id="metric-cards">
+    <div class="metric-card">
+      <div class="metric-label">High concentration</div>
+      <div class="metric-val" id="m-high">14</div>
+      <div class="metric-sub">markets (HHI &gt; 2500)</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Dual concentrated</div>
+      <div class="metric-val" id="m-dual">8</div>
+      <div class="metric-sub">plan + system overlap</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Top target</div>
+      <div class="metric-val" id="m-top" style="font-size:15px;">Nashville</div>
+      <div class="metric-sub">highest overlap score</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Avg plan HHI</div>
+      <div class="metric-val" id="m-avg">2,810</div>
+      <div class="metric-sub">across 30 metros</div>
+    </div>
+  </div>
+
+  <div class="map-wrap">
+    <svg id="map-svg" viewBox="0 0 960 580"></svg>
+  </div>
+
+  <div class="legend" id="legend-wrap">
+    <span class="legend-label">Low</span>
+    <div class="legend-bar" id="legend-bar"></div>
+    <span class="legend-label">High concentration</span>
+    <span style="margin-left:16px; font-size:11px; color:var(--color-text-tertiary);" id="legend-note">HHI scale: 0–10,000</span>
+  </div>
+
+  <div class="table-wrap">
+    <table id="metro-table">
+      <thead>
+        <tr>
+          <th>Metro area</th>
+          <th>Plan HHI</th>
+          <th>System HHI</th>
+          <th>Overlap score</th>
+          <th>Priority</th>
+          <th>Dominant carrier</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+
+<script>
+const metros = [
+  { name: "Nashville", state: "TN", cx: 620, cy: 320, planHHI: 5200, sysHHI: 4800, carrier: "BCBS Tennessee", notes: "HCA dominates systems; BCBS >50% commercial" },
+  { name: "Pittsburgh", state: "PA", cx: 690, cy: 240, planHHI: 4900, sysHHI: 5100, carrier: "Highmark BCBS", notes: "Highmark + UPMC integrated monopoly" },
+  { name: "Birmingham", state: "AL", cx: 620, cy: 370, planHHI: 4700, sysHHI: 4200, carrier: "BCBS Alabama", notes: "Near-monopoly plan; UAB system dominant" },
+  { name: "Charlotte", state: "NC", cx: 690, cy: 330, planHHI: 3900, sysHHI: 4400, carrier: "BCBS NC", notes: "Atrium Health consolidation; BCBS leading" },
+  { name: "Minneapolis", state: "MN", cx: 510, cy: 180, planHHI: 4100, sysHHI: 3800, carrier: "BCBS MN", notes: "Allina + Fairview consolidation" },
+  { name: "Kansas City", state: "MO", cx: 510, cy: 290, planHHI: 3600, sysHHI: 3400, carrier: "BCBS Kansas City", notes: "Midwest concentration typical" },
+  { name: "Indianapolis", state: "IN", cx: 620, cy: 260, planHHI: 3400, sysHHI: 3700, carrier: "Anthem BCBS IN", notes: "IU Health dominant; Anthem strong" },
+  { name: "St. Louis", state: "MO", cx: 560, cy: 280, planHHI: 3200, sysHHI: 3500, carrier: "Anthem BCBS MO", notes: "BJC + SSM integration ongoing" },
+  { name: "Memphis", state: "TN", cx: 580, cy: 360, planHHI: 3800, sysHHI: 3300, carrier: "BCBS Tennessee", notes: "Methodist dominant; BCBS TN #1" },
+  { name: "Oklahoma City", state: "OK", cx: 490, cy: 360, planHHI: 3500, sysHHI: 3100, carrier: "BCBS Oklahoma", notes: "OU Health + Integris; BCBS dominant" },
+  { name: "Louisville", state: "KY", cx: 640, cy: 290, planHHI: 3300, sysHHI: 2900, carrier: "Anthem BCBS KY", notes: "Norton + Baptist merger" },
+  { name: "Hartford", state: "CT", cx: 790, cy: 210, planHHI: 3100, sysHHI: 3200, carrier: "Cigna / Aetna", notes: "Trinity Health + Hartford Health" },
+  { name: "Detroit", state: "MI", cx: 660, cy: 220, planHHI: 2900, sysHHI: 3400, carrier: "BCBS Michigan", notes: "Henry Ford + Beaumont merging" },
+  { name: "Cleveland", state: "OH", cx: 680, cy: 240, planHHI: 2800, sysHHI: 4200, carrier: "Medical Mutual", notes: "Cleveland Clinic system dominance" },
+  { name: "Denver", state: "CO", cx: 400, cy: 290, planHHI: 2700, sysHHI: 2600, carrier: "BCBS Colorado", notes: "Intermountain + SCL merger" },
+  { name: "Portland", state: "OR", cx: 120, cy: 210, planHHI: 2900, sysHHI: 2700, carrier: "Providence / Regence", notes: "Providence dominates systems" },
+  { name: "Seattle", state: "WA", cx: 110, cy: 170, planHHI: 2600, sysHHI: 2900, carrier: "Premera BCBS", notes: "Providence + UW Medicine" },
+  { name: "Phoenix", state: "AZ", cx: 240, cy: 390, planHHI: 2500, sysHHI: 2400, carrier: "UnitedHealth", notes: "Banner Health dominant system" },
+  { name: "Dallas", state: "TX", cx: 490, cy: 400, planHHI: 2300, sysHHI: 2200, carrier: "BCBS Texas", notes: "Baylor Scott & White large but fragmented" },
+  { name: "Houston", state: "TX", cx: 510, cy: 430, planHHI: 2200, sysHHI: 2100, carrier: "BCBS Texas", notes: "Memorial Hermann + Houston Methodist" },
+  { name: "Atlanta", state: "GA", cx: 650, cy: 370, planHHI: 2100, sysHHI: 2300, carrier: "Anthem BCBS GA", notes: "Wellstar + Piedmont growing" },
+  { name: "Miami", state: "FL", cx: 700, cy: 470, planHHI: 2400, sysHHI: 1900, carrier: "UnitedHealth", notes: "Highly fragmented system landscape" },
+  { name: "Chicago", state: "IL", cx: 590, cy: 230, planHHI: 1900, sysHHI: 2000, carrier: "BCBS IL", notes: "Advocate + NM merged; still fragmented" },
+  { name: "Boston", state: "MA", cx: 800, cy: 200, planHHI: 2200, sysHHI: 2800, carrier: "BCBS MA", notes: "Mass General Brigham dominant system" },
+  { name: "Philadelphia", state: "PA", cx: 750, cy: 240, planHHI: 2100, sysHHI: 2400, carrier: "Independence BCBS", notes: "Jefferson + Einstein merger" },
+  { name: "New York", state: "NY", cx: 780, cy: 220, planHHI: 1600, sysHHI: 1700, carrier: "UnitedHealth / Anthem", notes: "Highly competitive, many players" },
+  { name: "Los Angeles", state: "CA", cx: 150, cy: 390, planHHI: 1700, sysHHI: 1500, carrier: "Kaiser / Anthem", notes: "Kaiser integrated; otherwise fragmented" },
+  { name: "San Francisco", state: "CA", cx: 110, cy: 330, planHHI: 1900, sysHHI: 1800, carrier: "Kaiser / BCBS CA", notes: "Kaiser dominant but others compete" },
+  { name: "Tampa", state: "FL", cx: 670, cy: 440, planHHI: 2300, sysHHI: 2100, carrier: "Florida Blue", notes: "BayCare system; Florida Blue dominant" },
+  { name: "Salt Lake City", state: "UT", cx: 280, cy: 280, planHHI: 3200, sysHHI: 4600, carrier: "SelectHealth", notes: "Intermountain Health near-monopoly system" },
+];
+
+function overlap(d) { return Math.round((d.planHHI + d.sysHHI) / 2); }
+function priority(d) {
+  const s = overlap(d);
+  if (s >= 3500) return 'high';
+  if (s >= 2500) return 'medium';
+  return 'low';
+}
+
+let currentView = 'overlap';
+
+const colorScales = {
+  plans: d3.scaleSequential([1500, 5500], ["#E6F1FB","#0C447C"]),
+  systems: d3.scaleSequential([1500, 5500], ["#E1F5EE","#085041"]),
+  overlap: d3.scaleSequential([1500, 5500], ["#FAEEDA","#633806"]),
+  target: d => {
+    const p = priority(d);
+    if (p === 'high') return '#E24B4A';
+    if (p === 'medium') return '#EF9F27';
+    return '#639922';
+  }
+};
+
+const legendGrads = {
+  plans: "linear-gradient(to right, #E6F1FB, #185FA5, #0C447C)",
+  systems: "linear-gradient(to right, #E1F5EE, #0F6E56, #085041)",
+  overlap: "linear-gradient(to right, #FAEEDA, #BA7517, #633806)",
+  target: "linear-gradient(to right, #639922, #EF9F27, #E24B4A)"
+};
+
+function getColor(d, view) {
+  if (view === 'target') return colorScales.target(d);
+  if (view === 'plans') return colorScales.plans(d.planHHI);
+  if (view === 'systems') return colorScales.systems(d.sysHHI);
+  return colorScales.overlap(overlap(d));
+}
+
+function setView(v) {
+  currentView = v;
+  ['overlap','plans','systems','target'].forEach(id => {
+    const b = document.getElementById('btn-' + id);
+    if (b) b.classList.toggle('active', id === v);
+  });
+  document.getElementById('legend-bar').style.background = legendGrads[v];
+  document.getElementById('legend-note').textContent = v === 'target'
+    ? 'Red = top HSA targets | Amber = medium | Green = low'
+    : 'HHI scale: 0–10,000 (2500+ = high concentration)';
+  renderDots();
+  renderTable();
+}
+
+const svg = d3.select('#map-svg');
+const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+
+d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(us => {
+  const proj = d3.geoAlbersUsa().scale(1050).translate([460, 290]);
+  const path = d3.geoPath(proj);
+  svg.append('g').selectAll('path')
+    .data(topojson.feature(us, us.objects.states).features)
+    .join('path')
+    .attr('d', path)
+    .attr('fill', isDark ? '#2C2C2A' : '#F1EFE8')
+    .attr('stroke', isDark ? 'rgba(255,255,255,0.12)' : '#fff')
+    .attr('stroke-width', 0.8);
+
+  renderDots();
+});
+
+function renderDots() {
+  svg.selectAll('.metro-dot').remove();
+  svg.selectAll('.metro-label').remove();
+
+  const sorted = [...metros].sort((a,b) => overlap(b) - overlap(a));
+
+  sorted.forEach(d => {
+    const r = currentView === 'target'
+      ? (priority(d) === 'high' ? 14 : priority(d) === 'medium' ? 10 : 7)
+      : Math.max(6, Math.min(18, (overlap(d) - 1000) / 280));
+
+    svg.append('circle')
+      .attr('class', 'metro-dot')
+      .attr('cx', d.cx)
+      .attr('cy', d.cy)
+      .attr('r', r)
+      .attr('fill', getColor(d, currentView))
+      .attr('fill-opacity', 0.85)
+      .attr('stroke', isDark ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.8)')
+      .attr('stroke-width', 1.5)
+      .append('title')
+      .text(`${d.name}\nPlan HHI: ${d.planHHI.toLocaleString()}\nSystem HHI: ${d.sysHHI.toLocaleString()}\nOverlap: ${overlap(d).toLocaleString()}\n${d.carrier}\n${d.notes}`);
+
+    if (r >= 10) {
+      svg.append('text')
+        .attr('class', 'metro-label')
+        .attr('x', d.cx)
+        .attr('y', d.cy + r + 11)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', 9)
+        .attr('fill', isDark ? '#B4B2A9' : '#5F5E5A')
+        .text(d.name);
+    }
+  });
+}
+
+function renderTable() {
+  const sorted = [...metros].sort((a,b) => overlap(b) - overlap(a)).slice(0, 15);
+  const tb = document.getElementById('table-body');
+  tb.innerHTML = '';
+  sorted.forEach(d => {
+    const p = priority(d);
+    const pillClass = p === 'high' ? 'pill-red' : p === 'medium' ? 'pill-amber' : 'pill-green';
+    const pillLabel = p === 'high' ? '▲ High' : p === 'medium' ? '◆ Medium' : '▼ Low';
+    const ovl = overlap(d);
+    const maxHHI = 5500;
+    tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong style="font-weight:500">${d.name}</strong><br><span style="font-size:10px;color:var(--color-text-secondary)">${d.notes}</span></td>
+      <td>
+        <div class="hhi-bar-wrap">
+          <div class="hhi-bar" style="width:${Math.round(d.planHHI/maxHHI*80)}px;background:#185FA5;opacity:0.7"></div>
+          <span>${d.planHHI.toLocaleString()}</span>
+        </div>
+      </td>
+      <td>
+        <div class="hhi-bar-wrap">
+          <div class="hhi-bar" style="width:${Math.round(d.sysHHI/maxHHI*80)}px;background:#0F6E56;opacity:0.7"></div>
+          <span>${d.sysHHI.toLocaleString()}</span>
+        </div>
+      </td>
+      <td><strong style="font-weight:500">${ovl.toLocaleString()}</strong></td>
+      <td><span class="pill ${pillClass}">${pillLabel}</span></td>
+      <td style="font-size:11px">${d.carrier}</td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+
+document.getElementById('legend-bar').style.background = legendGrads['overlap'];
+renderTable();
+</script>
