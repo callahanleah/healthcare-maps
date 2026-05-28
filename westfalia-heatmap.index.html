@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Westfalia — Smart HSA Market Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0e14;
+  --surface:#13161f;
+  --surface2:#191d28;
+  --border:rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.13);
+  --text:#dde2f0;
+  --text2:#7a839a;
+  --text3:#404760;
+  --red:#ff4d6a;
+  --red-dim:rgba(255,77,106,0.15);
+  --amber:#f5a623;
+  --amber-dim:rgba(245,166,35,0.15);
+  --green:#2de08a;
+  --green-dim:rgba(45,224,138,0.12);
+  --blue:#4d9fff;
+  --blue-dim:rgba(77,159,255,0.12);
+  --purple:#a78bfa;
+  --purple-dim:rgba(167,139,250,0.12);
+  --font:'IBM Plex Sans',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+  --display:'Syne',sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+
+/* HEADER */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 28px;border-bottom:1px solid var(--border);
+  background:var(--surface);gap:16px;flex-wrap:wrap;
+}
+.wordmark{font-family:var(--display);font-size:15px;font-weight:700;letter-spacing:0.06em;color:var(--text)}
+.wordmark span{color:var(--red)}
+.header-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tag{
+  font-family:var(--mono);font-size:10px;font-weight:500;
+  padding:3px 9px;border-radius:3px;letter-spacing:0.04em;
+  border:1px solid;white-space:nowrap;
+}
+.tag-red{color:var(--red);border-color:rgba(255,77,106,0.3);background:var(--red-dim)}
+.tag-blue{color:var(--blue);border-color:rgba(77,159,255,0.3);background:var(--blue-dim)}
+.tag-green{color:var(--green);border-color:rgba(45,224,138,0.25);background:var(--green-dim)}
+
+/* TABS */
+.tabs{
+  display:flex;gap:2px;padding:12px 28px 0;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  overflow-x:auto;
+}
+.tab{
+  font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:0.04em;
+  padding:8px 18px 10px;cursor:pointer;border:none;background:none;
+  color:var(--text3);border-bottom:2px solid transparent;
+  transition:all 0.15s;white-space:nowrap;
+}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--text);border-bottom-color:var(--red)}
+
+/* MAIN */
+main{padding:24px 28px;max-width:1300px;margin:0 auto}
+
+/* METRICS ROW */
+.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:20px}
+@media(max-width:900px){.metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr));} main{padding:16px}}
+.metric{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;padding:14px 16px;
+}
+.metric-label{font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+.metric-val{font-family:var(--display);font-size:22px;font-weight:700;color:var(--text);line-height:1;margin-bottom:3px}
+.metric-sub{font-size:11px;color:var(--text2);line-height:1.3}
+.metric-val.red{color:var(--red)}
+.metric-val.amber{color:var(--amber)}
+.metric-val.green{color:var(--green)}
+
+/* CONTROLS */
+.controls{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;align-items:center}
+.ctrl-label{font-family:var(--mono);font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-right:4px}
+.ctrl-btn{
+  font-family:var(--display);font-size:11px;font-weight:600;letter-spacing:0.03em;
+  padding:6px 14px;border-radius:4px;cursor:pointer;
+  border:1px solid var(--border2);background:var(--surface2);
+  color:var(--text2);transition:all 0.12s;
+}
+.ctrl-btn:hover{background:var(--surface);color:var(--text);border-color:rgba(255,255,255,0.2)}
+.ctrl-btn.active{background:rgba(255,77,106,0.18);color:var(--red);border-color:rgba(255,77,106,0.4)}
+.ctrl-btn.active-blue{background:rgba(77,159,255,0.15);color:var(--blue);border-color:rgba(77,159,255,0.35)}
+.ctrl-btn.active-green{background:rgba(45,224,138,0.12);color:var(--green);border-color:rgba(45,224,138,0.3)}
+.ctrl-btn.active-purple{background:rgba(167,139,250,0.12);color:var(--purple);border-color:rgba(167,139,250,0.3)}
+.ctrl-btn.active-amber{background:rgba(245,166,35,0.15);color:var(--amber);border-color:rgba(245,166,35,0.35)}
+
+/* MAP */
+.map-wrap{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;overflow:hidden;margin-bottom:12px;position:relative;
+}
+#map-svg{display:block;width:100%}
+
+/* LEGEND */
+.legend-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+.legend-bar{height:7px;width:140px;border-radius:3px;flex-shrink:0}
+.legend-text{font-family:var(--mono);font-size:10px;color:var(--text2)}
+.legend-note{font-family:var(--mono);font-size:10px;color:var(--text3);margin-left:6px}
+.source-line{font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:20px}
+
+/* TOOLTIP */
+.tooltip{
+  position:fixed;background:var(--surface2);border:1px solid var(--border2);
+  border-radius:6px;padding:12px 14px;font-size:12px;pointer-events:none;
+  opacity:0;transition:opacity 0.1s;z-index:100;max-width:280px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.5);
+}
+.tooltip.show{opacity:1}
+.tooltip-title{font-family:var(--display);font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px}
+.tooltip-row{display:flex;justify-content:space-between;gap:12px;margin-bottom:3px;align-items:center}
+.tooltip-key{color:var(--text2);font-size:11px}
+.tooltip-val{font-family:var(--mono);font-size:11px;color:var(--text);font-weight:500}
+.tooltip-val.red{color:var(--red)}
+.tooltip-val.amber{color:var(--amber)}
+.tooltip-val.green{color:var(--green)}
+.tooltip-employers{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:10px;color:var(--text2);line-height:1.5}
+
+/* TABLE */
+.table-section{margin-top:4px}
+.table-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.table-title{font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text2)}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:6px}
+table{width:100%;border-collapse:collapse;font-size:11px;min-width:700px}
+th{
+  text-align:left;padding:9px 12px;
+  border-bottom:1px solid var(--border2);
+  font-family:var(--mono);font-size:9px;font-weight:500;
+  color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;
+  background:var(--surface2);white-space:nowrap;
+}
+td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.pill{display:inline-block;padding:2px 8px;border-radius:3px;font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:0.05em;border:1px solid}
+.pill-red{color:var(--red);border-color:rgba(255,77,106,0.35);background:var(--red-dim)}
+.pill-amber{color:var(--amber);border-color:rgba(245,166,35,0.3);background:var(--amber-dim)}
+.pill-green{color:var(--green);border-color:rgba(45,224,138,0.25);background:var(--green-dim)}
+.bar-wrap{display:flex;align-items:center;gap:6px}
+.bar{height:4px;border-radius:2px;flex-shrink:0}
+.mono{font-family:var(--mono);font-size:10px}
+.name-strong{font-family:var(--display);font-weight:600;font-size:12px;display:block;margin-bottom:1px}
+.name-sub{font-size:10px;color:var(--text2)}
+.employer-list{font-size:10px;color:var(--text2);max-width:220px}
+
+/* ICHRA PANEL */
+.ichra-panel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:20px}
+@media(max-width:750px){.ichra-panel{grid-template-columns:1fr}}
+.ichra-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 16px}
+.ichra-card-title{font-family:var(--display);font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
+.ichra-card-sub{font-size:10px;color:var(--text2);margin-bottom:10px;line-height:1.4}
+.ichra-markets{display:flex;flex-wrap:wrap;gap:4px}
+.market-chip{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;border:1px solid;cursor:default}
+.chip-deep{color:var(--red);border-color:rgba(255,77,106,0.3);background:var(--red-dim)}
+.chip-light{color:var(--amber);border-color:rgba(245,166,35,0.25);background:var(--amber-dim)}
+.chip-none{color:var(--text3);border-color:var(--border);background:transparent}
+.ichra-depth-label{font-family:var(--mono);font-size:9px;margin-bottom:6px}
+.depth-bar-wrap{display:flex;gap:3px;margin-bottom:8px}
+.depth-seg{height:4px;flex:1;border-radius:2px;background:var(--border2)}
+.depth-seg.filled-red{background:var(--red)}
+.depth-seg.filled-amber{background:var(--amber)}
+.depth-seg.filled-green{background:var(--green)}
+
+.callout{background:var(--red-dim);border:1px solid rgba(255,77,106,0.25);border-radius:6px;padding:14px 16px;margin-bottom:20px;font-size:12px;line-height:1.6;color:var(--text)}
+.callout strong{color:var(--red);font-family:var(--display);font-weight:700}
+
+/* PANEL VISIBILITY */
+.panel{display:none}
+.panel.active{display:block}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">WESTFALIA<span>.</span> Market Intelligence</div>
+  <div class="header-meta">
+    <span class="tag tag-blue">AMA 2025 · Plan HHI</span>
+    <span class="tag tag-red">AHA 2024 · System HHI</span>
+    <span class="tag tag-green">KFF Oct 2025 · ICHRA</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('map')">Heat map</button>
+  <button class="tab" onclick="switchTab('ichra')">ICHRA vendor footprint</button>
+  <button class="tab" onclick="switchTab('employers')">Employer cross-tab</button>
+</div>
+
+<div id="tooltip" class="tooltip"></div>
+
+<!-- MAP PANEL -->
+<div id="panel-map" class="panel active">
+<main>
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Avg plan HHI</div>
+      <div class="metric-val">3,486</div>
+      <div class="metric-sub">384 MSAs · 97% highly concentrated</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Single insurer ≥50%</div>
+      <div class="metric-val red">47%</div>
+      <div class="metric-sub">of all commercial markets</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">BCBS dominant</div>
+      <div class="metric-val">84%</div>
+      <div class="metric-sub">of MSAs (321 of 384)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Top composite target</div>
+      <div class="metric-val red" style="font-size:16px">Pittsburgh</div>
+      <div class="metric-sub">Plan + system + employer lock-in</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">ICHRA whitespace</div>
+      <div class="metric-val amber">9</div>
+      <div class="metric-sub">top targets w/ near-zero ICHRA depth</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <span class="ctrl-label">Layer</span>
+    <button class="ctrl-btn active" onclick="setView('composite')" id="btn-composite">Composite score</button>
+    <button class="ctrl-btn" onclick="setView('plan')" id="btn-plan">Plan HHI</button>
+    <button class="ctrl-btn" onclick="setView('system')" id="btn-system">System HHI</button>
+    <button class="ctrl-btn" onclick="setView('ichra')" id="btn-ichra">ICHRA gap</button>
+    <button class="ctrl-btn" onclick="setView('employer')" id="btn-employer">Employer size</button>
+  </div>
+
+  <div class="map-wrap">
+    <svg id="map-svg" viewBox="0 0 960 580"></svg>
+  </div>
+
+  <div class="legend-row">
+    <span class="legend-text">Low</span>
+    <div class="legend-bar" id="legend-bar" style="background:linear-gradient(to right,#1a1d28,#f5a623,#ff4d6a)"></div>
+    <span class="legend-text">High priority</span>
+    <span class="legend-note" id="legend-note">Composite: Plan HHI + System HHI + ICHRA gap + Employer size</span>
+  </div>
+  <div class="source-line">Sources: AMA 2025 (plan HHI, 2024 enrollment) · AHA 2024 (system HHI, 2021 claims) · KFF/Peterson Oct 2025 (ICHRA) · BLS QCEW (employer size)</div>
+
+  <div class="table-section">
+    <div class="table-header">
+      <span class="table-title">Top 20 markets ranked by composite targeting score</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Metro</th>
+            <th>Plan HHI</th>
+            <th>System HHI</th>
+            <th>ICHRA depth</th>
+            <th>Priority</th>
+            <th>Dominant carrier</th>
+            <th>Dominant system</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- ICHRA PANEL -->
+<div id="panel-ichra" class="panel">
+<main>
+  <div class="callout">
+    <strong>Strategic whitespace:</strong> ICHRA vendors cluster in markets where individual market premiums are lower than small group premiums (Pacific Northwest, Mountain West, Indiana). The high-concentration Southern and Midwestern markets — where employers most need an alternative — have near-zero ICHRA vendor depth. Source: KFF/Peterson Oct 2025.
+  </div>
+
+  <div class="table-header" style="margin-bottom:14px">
+    <span class="table-title">ICHRA vendor geographic footprint</span>
+  </div>
+  <div class="ichra-panel" id="ichra-cards"></div>
+
+  <div class="table-header" style="margin-bottom:10px">
+    <span class="table-title">Market-by-market ICHRA depth vs. concentration</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Metro</th>
+          <th>Plan HHI</th>
+          <th>System HHI</th>
+          <th>ICHRA vendor depth</th>
+          <th>Individual mkt quality</th>
+          <th>ICHRA viability</th>
+          <th>Westfalia opportunity</th>
+        </tr>
+      </thead>
+      <tbody id="ichra-table-body"></tbody>
+    </table>
+  </div>
+</main>
+</div>
+
+<!-- EMPLOYERS PANEL -->
+<div id="panel-employers" class="panel">
+<main>
+  <div class="callout">
+    <strong>Targeting logic:</strong> Large self-insured employers in high-concentration markets are most likely exploring alternatives to the dominant carrier. The combination of employer size + plan HHI + system HHI creates the highest-value prospect universe for Smart HSA outreach.
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Metro</th>
+          <th>Major employers (500+)</th>
+          <th>Plan HHI</th>
+          <th>System HHI</th>
+          <th>Priority</th>
+          <th>Outreach angle</th>
+        </tr>
+      </thead>
+      <tbody id="employer-table-body"></tbody>
+    </table>
+  </div>
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const metros = [
+  {name:"Pittsburgh, PA",     cx:690,cy:237, planHHI:3294, sysHHI:6800, ichra:1, empSize:5, carrier:"Highmark BCBS",      system:"UPMC",               employers:"UPMC (90k), PNC, US Steel, Highmark, CMU",     rank:1,  ichraViability:"Low",    indMktQuality:"Poor — UPMC/Highmark duopoly on exchange too"},
+  {name:"Salt Lake City, UT", cx:280,cy:282, planHHI:2466, sysHHI:7200, ichra:2, empSize:4, carrier:"Intermountain (SelectHealth)", system:"Intermountain", employers:"Intermountain (40k), U of Utah (24k), Goldman Sachs, Adobe", rank:2, ichraViability:"Medium", indMktQuality:"Moderate — Intermountain dominates both markets"},
+  {name:"Lexington, KY",      cx:652,cy:282, planHHI:6833, sysHHI:4200, ichra:1, empSize:3, carrier:"Elevance (BCBS KY)", system:"UK HealthCare + Baptist", employers:"UK HealthCare (16k), Toyota Georgetown (8k), Ashland Inc", rank:3, ichraViability:"Low", indMktQuality:"Poor — Elevance dominates individual market too"},
+  {name:"Birmingham, AL",     cx:618,cy:368, planHHI:6897, sysHHI:5400, ichra:1, empSize:3, carrier:"BCBS Alabama",       system:"UAB Health System",   employers:"UAB (23k), Regions Bank, Protective Life, BBVA", rank:4, ichraViability:"Low",    indMktQuality:"Poor — BCBS AL 70% exchange share"},
+  {name:"Rochester, NY",      cx:726,cy:212, planHHI:6377, sysHHI:8100, ichra:1, empSize:3, carrier:"Lifetime Healthcare", system:"UR Medicine",         employers:"UR Medicine (25k), Paychex (4k), Wegmans, Xerox",rank:5, ichraViability:"Low",    indMktQuality:"Poor — Lifetime Healthcare dominant on exchange"},
+  {name:"Indianapolis, IN",   cx:628,cy:258, planHHI:3455, sysHHI:4100, ichra:2, empSize:5, carrier:"Elevance (BCBS IN)", system:"IU Health",           employers:"Eli Lilly (15k), Elevance HQ (10k), Salesforce, Rolls-Royce, Roche", rank:6, ichraViability:"Medium", indMktQuality:"Moderate — Indiana ICHRA tax credits help"},
+  {name:"Louisville, KY",     cx:640,cy:288, planHHI:5409, sysHHI:3300, ichra:1, empSize:4, carrier:"Elevance (BCBS KY)", system:"Norton + Baptist",    employers:"Humana HQ (10k), UPS Worldport (20k), Ford (14k), Norton", rank:7, ichraViability:"Low", indMktQuality:"Poor"},
+  {name:"Lansing / Detroit, MI",cx:655,cy:216, planHHI:5326, sysHHI:3900, ichra:1, empSize:5, carrier:"BCBS Michigan",  system:"Henry Ford + Beaumont", employers:"GM (50k), Ford (40k), Stellantis, BCBS MI HQ",  rank:8, ichraViability:"Low",    indMktQuality:"Poor — BCBS MI dominant on exchange"},
+  {name:"Shreveport, LA",     cx:550,cy:388, planHHI:5095, sysHHI:4800, ichra:1, empSize:2, carrier:"BCBS Louisiana",   system:"Willis-Knighton",     employers:"Willis-Knighton (6k), CHRISTUS, ExxonMobil, Turner Industries", rank:9, ichraViability:"Low", indMktQuality:"Poor"},
+  {name:"Nashville, TN",      cx:622,cy:323, planHHI:2231, sysHHI:3200, ichra:3, empSize:5, carrier:"BCBS Tennessee",   system:"HCA Healthcare",      employers:"HCA HQ (20k), Amazon ops, Nissan (8k), Vanderbilt (22k), Dollar General HQ", rank:10, ichraViability:"Medium", indMktQuality:"Moderate — multiple exchange insurers"},
+  {name:"Charlotte, NC",      cx:689,cy:328, planHHI:2071, sysHHI:3800, ichra:3, empSize:5, carrier:"BCBS NC",          system:"Atrium Health",       employers:"BofA HQ (15k), Wells Fargo (8k), Atrium (40k), Duke Energy HQ, Honeywell HQ", rank:11, ichraViability:"Medium", indMktQuality:"Moderate"},
+  {name:"Oklahoma City, OK",  cx:490,cy:360, planHHI:3307, sysHHI:3400, ichra:1, empSize:3, carrier:"HCSC (BCBS OK)",   system:"OU Health + Integris", employers:"Devon Energy (3k), Paycom HQ (3k), OU Health, INTEGRIS", rank:12, ichraViability:"Low", indMktQuality:"Poor"},
+  {name:"Baton Rouge, LA",    cx:568,cy:402, planHHI:4731, sysHHI:3800, ichra:1, empSize:3, carrier:"BCBS Louisiana",   system:"Our Lady of the Lake", employers:"ExxonMobil (6k), Turner Industries, OLOL, Baton Rouge General", rank:13, ichraViability:"Low", indMktQuality:"Poor"},
+  {name:"Huntsville, AL",     cx:625,cy:348, planHHI:6798, sysHHI:3600, ichra:1, empSize:3, carrier:"BCBS Alabama",     system:"Huntsville Hospital",  employers:"Redstone Arsenal (25k), Boeing (6k), SAIC, United Launch Alliance", rank:14, ichraViability:"Low", indMktQuality:"Poor"},
+  {name:"Rockford, IL",       cx:574,cy:222, planHHI:5588, sysHHI:3200, ichra:1, empSize:2, carrier:"HCSC (BCBS IL)",   system:"SwedishAmerican + OSF", employers:"Woodward, Collins Aerospace, SwedishAmerican Health", rank:15, ichraViability:"Low", indMktQuality:"Poor"},
+  {name:"Minneapolis, MN",    cx:508,cy:180, planHHI:2134, sysHHI:3600, ichra:3, empSize:5, carrier:"BCBS MN",          system:"Allina + Fairview",   employers:"UnitedHealth HQ (30k), Target HQ (10k), Best Buy HQ, 3M HQ, Medtronic", rank:16, ichraViability:"High",   indMktQuality:"Good — Section 1332 reinsurance"},
+  {name:"Chicago, IL",        cx:587,cy:228, planHHI:4066, sysHHI:2800, ichra:3, empSize:5, carrier:"HCSC (BCBS IL)",   system:"Advocate + NM",       employers:"Boeing HQ, Walgreens HQ, Exelon, United Airlines HQ, Baxter, Abbott", rank:17, ichraViability:"Medium",  indMktQuality:"Moderate"},
+  {name:"Columbus, OH",       cx:668,cy:258, planHHI:2183, sysHHI:2800, ichra:3, empSize:4, carrier:"Elevance Health",  system:"OhioHealth + Nationwide Children's", employers:"Nationwide HQ (9k), JPMorgan Chase, Cardinal Health HQ, Abercrombie HQ, L Brands", rank:18, ichraViability:"High", indMktQuality:"Good — competitive exchange"},
+  {name:"Denver, CO",         cx:400,cy:287, planHHI:2152, sysHHI:2600, ichra:4, empSize:4, carrier:"UnitedHealth Group", system:"Intermountain + SCL", employers:"Lockheed Martin (12k), DaVita HQ, DISH Network HQ, Arrow Electronics HQ", rank:19, ichraViability:"High", indMktQuality:"Excellent — Section 1332 reinsurance"},
+  {name:"Atlanta, GA",        cx:650,cy:368, planHHI:1722, sysHHI:2300, ichra:3, empSize:5, carrier:"Elevance Health",  system:"Wellstar + Piedmont",  employers:"Delta HQ (25k), Coca-Cola HQ, Home Depot HQ, UPS HQ, Cox Enterprises", rank:20, ichraViability:"Medium", indMktQuality:"Moderate — Georgia ICHRA legislation"},
+  // Additional metros for map completeness
+  {name:"Tallahassee, FL",    cx:648,cy:418, planHHI:6139, sysHHI:3100, ichra:1, empSize:2, carrier:"BCBS FL",          system:"Tallahassee Memorial", employers:"State of FL agencies, Florida State U, Capital Regional Medical", rank:21, ichraViability:"Low", indMktQuality:"Poor"},
+  {name:"Seattle, WA",        cx:110,cy:170, planHHI:1621, sysHHI:2900, ichra:4, empSize:5, carrier:"Premera BCBS",     system:"Providence + UW Medicine", employers:"Amazon HQ (50k), Microsoft (50k), Boeing (40k), Starbucks HQ", rank:22, ichraViability:"High", indMktQuality:"Excellent"},
+  {name:"Portland, OR",       cx:118,cy:210, planHHI:1715, sysHHI:2700, ichra:4, empSize:4, carrier:"Kaiser",           system:"Providence + OHSU",   employers:"Nike HQ (12k), Intel (20k), Daimler Trucks, Precision Castparts", rank:23, ichraViability:"High", indMktQuality:"Excellent — Section 1332"},
+  {name:"Boston, MA",         cx:800,cy:198, planHHI:2160, sysHHI:3800, ichra:3, empSize:5, carrier:"BCBS MA",          system:"Mass General Brigham", employers:"Harvard (20k), MIT (11k), Raytheon HQ, Biogen, State Street", rank:24, ichraViability:"Medium", indMktQuality:"Moderate"},
+  {name:"Miami, FL",          cx:700,cy:468, planHHI:1809, sysHHI:1900, ichra:3, empSize:5, carrier:"BCBS FL",          system:"Baptist Health + Jackson", employers:"American Airlines (MIA ops), Carnival HQ, Lennar HQ, World Fuel Services", rank:25, ichraViability:"Medium", indMktQuality:"Moderate"},
+  {name:"Dallas, TX",         cx:490,cy:395, planHHI:2627, sysHHI:2200, ichra:4, empSize:5, carrier:"HCSC (BCBS TX)",   system:"Baylor Scott & White", employers:"AT&T HQ, ExxonMobil HQ, American Airlines HQ, Toyota North America HQ", rank:26, ichraViability:"High", indMktQuality:"Good — Take Command HQ"},
+  {name:"Houston, TX",        cx:508,cy:422, planHHI:2391, sysHHI:2100, ichra:3, empSize:5, carrier:"HCSC (BCBS TX)",   system:"Memorial Hermann",    employers:"ExxonMobil (10k), Schlumberger, ConocoPhillips HQ, Phillips 66 HQ, Sysco HQ", rank:27, ichraViability:"Medium", indMktQuality:"Moderate"},
+  {name:"New York, NY",       cx:778,cy:218, planHHI:1725, sysHHI:1700, ichra:4, empSize:5, carrier:"UnitedHealth Group", system:"Northwell + NYC Health", employers:"JPMorgan Chase HQ, Goldman Sachs HQ, Pfizer HQ, Verizon HQ, Citigroup HQ", rank:28, ichraViability:"High", indMktQuality:"Good — Venteur present"},
+  {name:"Los Angeles, CA",    cx:152,cy:392, planHHI:2113, sysHHI:1500, ichra:3, empSize:5, carrier:"Kaiser",           system:"Kaiser + Cedars-Sinai", employers:"Disney (60k local), Northrop Grumman HQ, Chevron (ops), Warner Bros Discovery HQ", rank:29, ichraViability:"Medium", indMktQuality:"Good"},
+  {name:"San Francisco, CA",  cx:112,cy:330, planHHI:2904, sysHHI:1800, ichra:4, empSize:5, carrier:"Kaiser",           system:"UCSF + Sutter",       employers:"Salesforce HQ, Wells Fargo HQ, Gap HQ, Levi Strauss HQ, McKesson HQ", rank:30, ichraViability:"High", indMktQuality:"Excellent — Venteur present"},
+];
+
+const ichraVendors = [
+  {name:"Take Command Health", hq:"Dallas, TX", focus:"SMB + mid-market", depth:3, markets:["Dallas","Houston","Austin","San Antonio","Nashville","Charlotte"], light:["Atlanta","Denver","Phoenix"], none:["Birmingham","Pittsburgh","Lexington","Salt Lake City","Rochester","Louisville","Detroit","Shreveport"], note:"Texas-anchored. Expanding nationally but thin in high-HHI Southeast/Midwest. Acknowledged by KFF as key industry participant in Oct 2025 research."},
+  {name:"PeopleKeep (Remodel Health)", hq:"Indianapolis, IN", focus:"Small business (<50 employees)", depth:2, markets:["Boise","Salt Lake City","Raleigh","Austin"], light:["Denver","Seattle","Portland","Minneapolis"], none:["Birmingham","Pittsburgh","Lexington","Louisville","Rochester","Shreveport","Lansing"], note:"Broadest national footprint but mile-wide, inch-deep. Case studies cluster in Mountain West and Sun Belt secondary metros. Very thin in concentration markets."},
+  {name:"Venteur", hq:"San Francisco, CA", focus:"Tech/professional services, startup-adjacent", depth:4, markets:["San Francisco","New York","Seattle","Boston"], light:["Denver","Austin","Los Angeles"], none:["Birmingham","Pittsburgh","Lexington","Louisville","Rochester","Nashville","Indianapolis","Detroit"], note:"Coastal-only play. No meaningful presence anywhere with high plan or system concentration. Zero GTM conflict with Westfalia in target markets."},
+  {name:"Salusion", hq:"Indianapolis, IN", focus:"Small employers, benefits-naive", depth:1, markets:["Indianapolis"], light:["Columbus"], none:["All other major metros"], note:"Very early stage. Minimal market presence outside of Indianapolis origin market. Not a competitive threat in near term."},
+  {name:"HealthPass / ICHRA.com", hq:"Houston, TX", focus:"Broker channel distribution", depth:2, markets:["Houston","Dallas"], light:["National via broker"], none:["Direct: no geographic specificity"], note:"Pure platform play via broker channel. No direct employer outreach by geography. Presence wherever brokers recommend it."},
+  {name:"Remodel Health", hq:"Indianapolis, IN", focus:"Mid-market (50-500 employees)", depth:3, markets:["Indianapolis","Columbus","Nashville","Charlotte"], light:["Atlanta","Dallas","Denver"], none:["Birmingham","Pittsburgh","Lexington","Louisville","Rochester","Detroit","Shreveport"], note:"More enterprise-focused than sibling PeopleKeep. Indiana ICHRA tax credits created home-state advantage. Expanding in Midwest but thin in high-concentration markets."},
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let currentView = 'composite';
+const tooltip = document.getElementById('tooltip');
+
+function composite(d) {
+  const p = Math.min(d.planHHI / 7000, 1);
+  const s = Math.min(d.sysHHI / 8000, 1);
+  const i = (5 - d.ichra) / 4;
+  const e = d.empSize / 5;
+  return Math.round((p * 0.3 + s * 0.3 + i * 0.25 + e * 0.15) * 100);
+}
+
+function priority(d) {
+  const c = composite(d);
+  if (c >= 70) return 'high';
+  if (c >= 45) return 'medium';
+  return 'low';
+}
+
+const colorScales = {
+  composite: v => d3.interpolateRgb("#1a1d28","#ff4d6a")(v/100),
+  plan: v => d3.interpolateRgb("#1a1d28","#4d9fff")(Math.min(v/8500,1)),
+  system: v => d3.interpolateRgb("#1a1d28","#a78bfa")(Math.min(v/8500,1)),
+  ichra: v => d3.interpolateRgb("#1a1d28","#f5a623")((5-v)/4),
+  employer: v => d3.interpolateRgb("#1a1d28","#2de08a")(v/5),
+};
+
+const legendGrads = {
+  composite: "linear-gradient(to right,#1a1d28,#f5a623,#ff4d6a)",
+  plan:      "linear-gradient(to right,#1a1d28,#185fa5,#4d9fff)",
+  system:    "linear-gradient(to right,#1a1d28,#5b3ea6,#a78bfa)",
+  ichra:     "linear-gradient(to right,#1a1d28,#f5a623)",
+  employer:  "linear-gradient(to right,#1a1d28,#0f6e56,#2de08a)",
+};
+
+const legendNotes = {
+  composite: "Composite: Plan HHI (30%) + System HHI (30%) + ICHRA gap (25%) + Employer size (15%)",
+  plan:      "Plan HHI — combined PPO+HMO+POS+EXCH · AMA 2025",
+  system:    "Health system HHI — inpatient admissions share · AHA 2024",
+  ichra:     "ICHRA vendor gap — amber = vendors absent, dark = vendors present",
+  employer:  "Employer size concentration — large self-insured employers present",
+};
+
+const btnClasses = {
+  composite:'active', plan:'active-blue', system:'active-purple',
+  ichra:'active-amber', employer:'active-green',
+};
+
+function getColor(d, view) {
+  if (view === 'composite') return colorScales.composite(composite(d));
+  if (view === 'plan')      return colorScales.plan(d.planHHI);
+  if (view === 'system')    return colorScales.system(d.sysHHI);
+  if (view === 'ichra')     return colorScales.ichra(d.ichra);
+  if (view === 'employer')  return colorScales.employer(d.empSize);
+}
+
+function setView(v) {
+  currentView = v;
+  ['composite','plan','system','ichra','employer'].forEach(id => {
+    const b = document.getElementById('btn-'+id);
+    b.className = 'ctrl-btn' + (id===v ? ' '+btnClasses[id] : '');
+  });
+  document.getElementById('legend-bar').style.background = legendGrads[v];
+  document.getElementById('legend-note').textContent = legendNotes[v];
+  renderDots();
+}
+
+// ─── MAP ─────────────────────────────────────────────────────────────────────
+const svg = d3.select('#map-svg');
+
+d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(us => {
+  const proj = d3.geoAlbersUsa().scale(1050).translate([460,290]);
+  const path = d3.geoPath(proj);
+  svg.append('g').selectAll('path')
+    .data(topojson.feature(us, us.objects.states).features)
+    .join('path')
+    .attr('d', path)
+    .attr('fill','#191d28')
+    .attr('stroke','#0c0e14')
+    .attr('stroke-width',1);
+  renderDots();
+});
+
+function renderDots() {
+  svg.selectAll('.mdot,.mlabel').remove();
+  const sorted = [...metros].sort((a,b) => composite(a)-composite(b));
+  sorted.forEach(d => {
+    const c = composite(d);
+    const r = Math.max(5, Math.min(20, (c / 100) * 18 + 3));
+    const col = getColor(d, currentView);
+    const ring = priority(d) === 'high' ? 'rgba(255,77,106,0.35)' : priority(d) === 'medium' ? 'rgba(245,166,35,0.25)' : 'rgba(255,255,255,0.06)';
+
+    svg.append('circle').attr('class','mdot')
+      .attr('cx',d.cx).attr('cy',d.cy).attr('r',r)
+      .attr('fill',col).attr('fill-opacity',0.88)
+      .attr('stroke',ring).attr('stroke-width',priority(d)==='high'?2:1)
+      .style('cursor','pointer')
+      .on('mouseenter', function(event) { showTooltip(event, d); })
+      .on('mousemove', function(event) { moveTooltip(event); })
+      .on('mouseleave', function() { tooltip.classList.remove('show'); });
+
+    if (r >= 12) {
+      svg.append('text').attr('class','mlabel')
+        .attr('x',d.cx).attr('y',d.cy+r+10)
+        .attr('text-anchor','middle').attr('font-size',8.5)
+        .attr('font-family',"'IBM Plex Mono',monospace")
+        .attr('fill','#404760')
+        .text(d.name.split(',')[0].split('/')[0].trim());
+    }
+  });
+}
+
+function showTooltip(event, d) {
+  const p = priority(d);
+  const pilClass = p==='high'?'red':p==='medium'?'amber':'green';
+  const pilText = p==='high'?'HIGH PRIORITY':p==='medium'?'MEDIUM':'LOWER';
+  const ichraText = d.ichra===1?'None / minimal':d.ichra===2?'PeopleKeep only':d.ichra===3?'Light coverage':d.ichra===4?'Moderate':'Strong';
+  const ichraCol = d.ichra<=2?'red':d.ichra===3?'amber':'green';
+  tooltip.innerHTML = `
+    <div class="tooltip-title">${d.name}</div>
+    <div class="tooltip-row"><span class="tooltip-key">Priority</span><span class="tooltip-val ${pilClass}">${pilText}</span></div>
+    <div class="tooltip-row"><span class="tooltip-key">Composite score</span><span class="tooltip-val">${composite(d)}/100</span></div>
+    <div class="tooltip-row"><span class="tooltip-key">Plan HHI (AMA 2025)</span><span class="tooltip-val">${d.planHHI.toLocaleString()}</span></div>
+    <div class="tooltip-row"><span class="tooltip-key">System HHI (AHA 2024)</span><span class="tooltip-val">${d.sysHHI.toLocaleString()}</span></div>
+    <div class="tooltip-row"><span class="tooltip-key">ICHRA vendor depth</span><span class="tooltip-val ${ichraCol}">${ichraText}</span></div>
+    <div class="tooltip-row"><span class="tooltip-key">Dominant carrier</span><span class="tooltip-val">${d.carrier}</span></div>
+    <div class="tooltip-row"><span class="tooltip-key">Dominant system</span><span class="tooltip-val">${d.system}</span></div>
+    <div class="tooltip-employers"><strong style="color:var(--text2)">Large employers:</strong><br>${d.employers}</div>`;
+  tooltip.classList.add('show');
+  moveTooltip(event);
+}
+
+function moveTooltip(event) {
+  const x = event.clientX + 14, y = event.clientY - 10;
+  tooltip.style.left = Math.min(x, window.innerWidth - 300) + 'px';
+  tooltip.style.top = Math.min(y, window.innerHeight - 260) + 'px';
+}
+
+// ─── TABLE ────────────────────────────────────────────────────────────────────
+function renderTable() {
+  const sorted = [...metros].sort((a,b) => composite(b)-composite(a)).slice(0,20);
+  const tb = document.getElementById('table-body');
+  const max = 9000;
+  sorted.forEach((d,i) => {
+    const p = priority(d);
+    const pc = p==='high'?'pill-red':p==='medium'?'pill-amber':'pill-green';
+    const pl = p==='high'?'HIGH':p==='medium'?'MED':'LOW';
+    const ichraText = d.ichra===1?'None':d.ichra===2?'Minimal':d.ichra===3?'Light':d.ichra===4?'Moderate':'Strong';
+    const ichraCol = d.ichra<=2?'red':d.ichra===3?'amber':'green';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mono" style="color:var(--text3)">${i+1}</td>
+      <td><span class="name-strong">${d.name.split(',')[0]}</span><span class="name-sub">${d.name.includes(',')?d.name.split(',')[1].trim():''}</span></td>
+      <td><div class="bar-wrap"><div class="bar" style="width:${Math.round(d.planHHI/max*60)}px;background:#4d9fff;opacity:0.7"></div><span class="mono">${d.planHHI.toLocaleString()}</span></div></td>
+      <td><div class="bar-wrap"><div class="bar" style="width:${Math.round(d.sysHHI/max*60)}px;background:#a78bfa;opacity:0.7"></div><span class="mono">${d.sysHHI.toLocaleString()}</span></div></td>
+      <td><span class="mono" style="color:var(--${ichraCol})">${ichraText}</span></td>
+      <td><span class="pill ${pc}">${pl}</span></td>
+      <td style="font-size:10px;color:var(--text2)">${d.carrier}</td>
+      <td style="font-size:10px;color:var(--text2)">${d.system}</td>`;
+    tb.appendChild(tr);
+  });
+}
+renderTable();
+
+// ─── ICHRA CARDS ─────────────────────────────────────────────────────────────
+function renderIchraCards() {
+  const container = document.getElementById('ichra-cards');
+  ichraVendors.forEach(v => {
+    const depthSegs = Array.from({length:5},(_,i)=>{
+      const cls = i < v.depth ? (v.depth<=2?'filled-amber':'filled-red') : '';
+      return `<div class="depth-seg ${cls}"></div>`;
+    }).join('');
+    const deepChips = v.markets.map(m=>`<span class="market-chip chip-deep">${m}</span>`).join('');
+    const lightChips = v.light ? v.light.slice(0,4).map(m=>`<span class="market-chip chip-light">${m}</span>`).join('') : '';
+    card = `<div class="ichra-card">
+      <div class="ichra-card-title">${v.name}</div>
+      <div class="ichra-card-sub">${v.hq} · ${v.focus}</div>
+      <div class="ichra-depth-label" style="color:var(--text3);margin-bottom:4px">DEPTH: ${['','Minimal','Low','Moderate','High','Strong'][v.depth]}</div>
+      <div class="depth-bar-wrap">${depthSegs}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:4px">STRONG MARKETS</div>
+      <div class="ichra-markets" style="margin-bottom:8px">${deepChips}</div>
+      ${lightChips ? `<div style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:4px">LIGHT PRESENCE</div><div class="ichra-markets" style="margin-bottom:8px">${lightChips}</div>` : ''}
+      <div style="font-size:10px;color:var(--text2);line-height:1.4;border-top:1px solid var(--border);padding-top:8px">${v.note}</div>
+    </div>`;
+    container.innerHTML += card;
+  });
+}
+renderIchraCards();
+
+function renderIchraTable() {
+  const sorted = [...metros].sort((a,b)=>composite(b)-composite(a)).slice(0,15);
+  const tb = document.getElementById('ichra-table-body');
+  sorted.forEach(d => {
+    const p = priority(d);
+    const pc = p==='high'?'pill-red':p==='medium'?'pill-amber':'pill-green';
+    const ichraText = d.ichra===1?'None':d.ichra===2?'Minimal':d.ichra===3?'Light':d.ichra===4?'Moderate':'Strong';
+    const ichraCol = d.ichra<=2?'var(--red)':d.ichra===3?'var(--amber)':'var(--green)';
+    const oppText = d.ichra<=2 && composite(d)>=60 ? '🔴 Maximum whitespace' : d.ichra<=3 && composite(d)>=50 ? '🟡 Strong whitespace' : '⚪ Monitor';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="name-strong">${d.name.split(',')[0]}</span></td>
+      <td class="mono">${d.planHHI.toLocaleString()}</td>
+      <td class="mono">${d.sysHHI.toLocaleString()}</td>
+      <td style="color:${ichraCol};font-family:var(--mono);font-size:10px">${ichraText}</td>
+      <td style="font-size:10px;color:var(--text2)">${d.indMktQuality}</td>
+      <td style="font-size:10px;color:var(--text2)">${d.ichraViability}</td>
+      <td style="font-size:11px">${oppText}</td>`;
+    tb.appendChild(tr);
+  });
+}
+renderIchraTable();
+
+// ─── EMPLOYER TABLE ───────────────────────────────────────────────────────────
+function renderEmployerTable() {
+  const sorted = [...metros].sort((a,b)=>composite(b)-composite(a)).slice(0,20);
+  const tb = document.getElementById('employer-table-body');
+  const angles = {
+    "Pittsburgh, PA":"UPMC is employer + system + plan — uniquely trapped mid-market employers",
+    "Salt Lake City, UT":"Every large employer faces Intermountain/SelectHealth captive structure",
+    "Lexington, KY":"Toyota, UK HealthCare — manufacturing + health system employees",
+    "Birmingham, AL":"UAB self-insured employees + Regions Bank, Protective Life",
+    "Rochester, NY":"UR Medicine employees face Lifetime Healthcare plan monopoly",
+    "Indianapolis, IN":"Elevance HQ creates conflict — large employers want independence",
+    "Louisville, KY":"Humana HQ ironically creates awareness of alternatives",
+    "Lansing / Detroit, MI":"Auto sector large self-insured = sophisticated benefits buyers",
+    "Shreveport, LA":"Energy sector employers face Willis-Knighton/BCBS LA duopoly",
+    "Nashville, TN":"HCA creates awareness; Amazon, Nissan = large HR-sophisticated employers",
+    "Charlotte, NC":"BofA, Wells Fargo = most sophisticated benefits buyers in market",
+    "Oklahoma City, OK":"Devon Energy, Paycom = tech-adjacent, benefits-innovative",
+    "Baton Rouge, LA":"ExxonMobil = global employer frustrated by local market limits",
+    "Huntsville, AL":"Defense contractors = federal benefits expertise, open to alternatives",
+    "Rockford, IL":"Manufacturing employers with high-cost workforces",
+    "Minneapolis, MN":"UnitedHealth HQ = market sophistication; Target, Best Buy = retail benefits pressure",
+    "Chicago, IL":"Large corporate HQs, broad market awareness of alternatives",
+    "Columbus, OH":"Nationwide, Cardinal Health = insurance-sector awareness",
+    "Denver, CO":"Tech corridor + good individual market = ICHRA and HSA viable",
+    "Atlanta, GA":"Delta, Coca-Cola, Home Depot = largest employer base in Southeast",
+  };
+  sorted.forEach((d,i) => {
+    const p = priority(d);
+    const pc = p==='high'?'pill-red':p==='medium'?'pill-amber':'pill-green';
+    const pl = p==='high'?'HIGH':p==='medium'?'MED':'LOW';
+    const angle = angles[d.name] || '—';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="mono" style="color:var(--text3)">${i+1}</td>
+      <td><span class="name-strong">${d.name.split(',')[0]}</span></td>
+      <td class="employer-list">${d.employers}</td>
+      <td class="mono">${d.planHHI.toLocaleString()}</td>
+      <td class="mono">${d.sysHHI.toLocaleString()}</td>
+      <td><span class="pill ${pc}">${pl}</span></td>
+      <td style="font-size:10px;color:var(--text2);max-width:200px">${angle}</td>`;
+    tb.appendChild(tr);
+  });
+}
+renderEmployerTable();
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
